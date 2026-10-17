@@ -9,4 +9,6 @@ This is the copy that plays without a Claude account, on iPhone, iPad and Androi
 
 The book lives only on that device, so save a backup now and then: Menu, **Save a backup of my book**. Presents travel as links in messages: select a gift box and tap Send.
 
+`test/` is a test copy, for trying a new build before it comes here: it has a purple mat, its own icon (Sticker Test) and its own saved book, so it never touches the real one.
+
 These files are built from a private repository (`sh sticker-worlds/build.sh` makes `sticker-worlds/site/`). Don't edit them here: changes belong in the source, and the next build replaces these.

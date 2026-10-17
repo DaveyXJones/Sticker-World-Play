@@ -1,6 +1,11 @@
 /* Sticker Worlds outside Claude: keeps the page, its icons and its fonts, so it opens without a connection.
-   build.sh stamps the build into CACHE, so each new build replaces the old copy. */
-const CACHE = 'sticker-worlds-1248335785';
+   build.sh stamps which copy this is into KIND ('sticker-worlds', or 'sticker-worlds-test' for the test copy in test/)
+   and the build into CACHE, so each new build replaces the old copy of the same kind, and leaves the other alone. */
+const KIND = 'sticker-worlds', CACHE = KIND + '-1489408413';
+// This copy's own files sit in the folder beside sw.js. The test copy lives in a folder below the real one's, so the
+// real one's service worker sees its requests too (before the test copy's own takes over): it leaves those be.
+const ROOT = new URL('./', location.href).pathname;
+const ours = url => url.pathname.startsWith(ROOT) && !url.pathname.slice(ROOT.length).includes('/');
 const SHELL = ['./', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap';
 
@@ -19,13 +24,13 @@ self.addEventListener('install', e => e.waitUntil((async () => {
 })()));
 
 self.addEventListener('activate', e => e.waitUntil((async () => {
-  for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k);
+  for (const k of await caches.keys()) if (k !== CACHE && k.replace(/-\d+$/, '') === KIND) await caches.delete(k);
   await self.clients.claim();
 })()));
 
 self.addEventListener('fetch', e => {
   const r = e.request, url = new URL(r.url);
-  if (r.method !== 'GET') return;
+  if (r.method !== 'GET' || (url.origin === location.origin && !ours(url))) return; // (the test copy's, say)
   if (r.mode === 'navigate') {
     // The page itself: the newest from the network, or the kept copy when there's no connection (or it's slow).
     const net = fetch(r).then(res => {
