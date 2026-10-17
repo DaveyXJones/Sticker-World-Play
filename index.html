@@ -3757,7 +3757,8 @@ const pops = new Map(); // item id -> time it was added (for the little "stick" 
 const tilting = new Map(); // item id -> { from, t0, dur, ease } while a sticker lies down or stands up
 const flipping = new Map(); // item id -> time it started turning round like a card
 const POP_MS = 280, FLIP_MS = 340;
-let rafId = 0, nowT = 0, drawn = 0, exporting = false, liftedId = null;
+let rafId = 0, nowT = 0, drawn = 0, exporting = false, liftedId = null, liftedWith = null; // liftedWith: what stands on the lifted sticker
+const ridesWith = new Map(); // item id -> the sticker it stands on, while that one wobbles or turns round like a card
 let anim = null, inertia = null, dropHint = null; // dropHint: the frame a dragged sticker would go into
 
 function requestRender() { if (!rafId) rafId = requestAnimationFrame(frame); }
@@ -3884,8 +3885,9 @@ function drawSceneAt(sc, M, depth, top) {
 
 function drawItem(it, M, depth) {
   if (it.t === 'p' && !scene(it.s)) return;
-  const tl = shownTilt(it), ext = itemExtent(it, tl);
+  const tl = shownTilt(it), ext = itemExtent(it, tl), R = riderMove(it, M);
   let Mi = mul(M, localMatrix(it, M));
+  if (R) Mi = mul(R, Mi);
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const [u, v] of [[ext[0], ext[1]], [ext[2], ext[1]], [ext[0], ext[3]], [ext[2], ext[3]]]) {
     const [x, y] = ap(Mi, u, v);
@@ -3905,6 +3907,21 @@ function drawItem(it, M, depth) {
   if (J) Mi = mul(Mi, J);
   if (it.t === 'p') drawPortal(it, Mi, depth, pop);
   else drawSticker(it, Mi, k, pop, tl);
+}
+
+// Something standing on a sticker that is lifted, wobbling or turning round goes with it: the extra move (on screen)
+// to draw it with, the same one that sticker is drawn with, about that sticker's middle.
+function riderMove(it, M) {
+  if (!liftedWith && !ridesWith.size) return null;
+  const lifted = liftedWith && !exporting && liftedWith.has(it.id), by = lifted ? liftedId : ridesWith.get(it.id), o = by && itemById(by);
+  if (!o) return null;
+  let T = (jiggles.size && moveMatrix(by, itemExtent(o, shownTilt(o)), o.flip)) || null;
+  if (lifted) T = mul(T || mat(1, 0, 0, 1, 0, 0), sim(0, 0, 0, o.t === 'p' ? 1.04 : 1.07));
+  const fl = flipping.get(by), t = fl === undefined ? 1 : (nowT - fl) / FLIP_MS;
+  if (t < 1) { const c = -Math.cos(Math.PI * easeInOutCubic(Math.max(0, t))); T = mul(T || mat(1, 0, 0, 1, 0, 0), mat(Math.abs(c) < 0.02 ? 0.02 : c, 0, 0, 1, 0, 0)); }
+  if (!T) { ridesWith.delete(it.id); return null; }
+  const L = mul(M, localMatrix(o, M));
+  return mul(L, mul(T, inv(L)));
 }
 
 function drawSticker(it, Mi, k, pop, tl) {
@@ -4431,7 +4448,7 @@ function drawTurn() {
 }
 /* ---------- touch, mouse and keyboard ---------- */
 const pointers = new Map();
-let gesture = null, lastTap = null, panHist = [], wheelTimer = 0;
+let gesture = null, lastTap = null, panHist = [], wheelTimer = 0, rideTipShown = false;
 
 // The similarity that carries segment (a0, b0) onto (a1, b1), in screen space.
 function pairSim(a0, b0, a1, b1, allowRot) {
@@ -4492,20 +4509,21 @@ function clampItem(it, loose) {
   if (it.spin) it.spin = wrapAngle(it.spin);
 }
 function itemById(id) { return findItem(rootScene(), id); }
-function moveItemBy(id, dx, dy) {
-  const it = itemById(id);
+function moveItemBy(g, dx, dy) {
+  const it = itemById(g.id), sc = rootScene();
   if (!it) return;
   const c = Math.cos(-cam.r), s = Math.sin(-cam.r);
   it.x += (c * dx - s * dy) / cam.z; it.y += (s * dx + c * dy) / cam.z;
   clampItem(it, true);
-  const f = dropTargetFor(it);
+  const f = dropTargetFor(it, g.riders);
   dropHint = f ? f.id : null;
   peekDoors(dropHint);
-  if (isRoom(rootScene())) roomPlace(rootScene(), it); // onto a wall or off it, and in front of or behind things
+  if (isRoom(sc)) roomPlace(sc, it); // onto a wall or off it, and in front of or behind things
+  carry(sc, it, g.riders);
   requestRender();
 }
-function transformItem(id, S) {
-  const it = itemById(id);
+function transformItem(g, S) {
+  const it = itemById(g.id);
   if (!it) return;
   const M = camMatrix();
   if (it.tilt) { // lying down, it slides along with the fingers and turns round on what it lies on
@@ -4521,7 +4539,7 @@ function transformItem(id, S) {
     it.x = L.e; it.y = L.f; it.rot = Math.atan2(L.b, L.a);
     it.size = it.t === 'p' ? scaleOf(L) * scene(it.s).w : scaleOf(L);
   }
-  clampItem(it); requestRender();
+  clampItem(it); carry(rootScene(), it, g.riders); requestRender();
 }
 // The corner handle turns and resizes about the sticker's middle. A sticker lying down turns round on its surface
 // instead, about the middle of what you see of it, keeping the row it lies on where it was.
@@ -4534,7 +4552,7 @@ function handleDrag(g, px, py, x, y) {
   const turn = Math.atan2(y - cy, x - cx) - Math.atan2(py - cy, px - cx);
   if (it.tilt) spinBy(it, turn, d1 / d0);
   else { it.size *= d1 / d0; it.rot += turn; }
-  clampItem(it); requestRender();
+  clampItem(it); carry(rootScene(), it, g.riders); requestRender();
 }
 // Turn a lying-down sticker round by `turn` as you see it, and grow it by f, without its hinge (the middle of the row
 // it lies on) moving. A flipped sticker shows its picture mirrored, so its spin goes the other way.
@@ -4587,13 +4605,14 @@ function tiltDrag(g, x, y) {
 }
 
 /* ----- putting stickers into furniture, taking them out, and standing them on shelves ----- */
-// A frame in this scene whose opening is under the sticker's centre and big enough to take it.
-function dropTargetFor(it) {
+// A frame in this scene whose opening is under the sticker's centre and big enough to take it (not one riding along
+// on it).
+function dropTargetFor(it, riders) {
   const sc = rootScene(), M = camMatrix(), Mi0 = mul(M, localMatrix(it, M)), [px, py] = ap(Mi0, ...itemMiddle(it)), e = itemExtent(it);
   const size = Math.max(e[2] - e[0], e[3] - e[1]) * scaleOf(Mi0), blocked = it.t === 'p' ? ownedScenes(it.s) : null;
   for (let i = sc.items.length - 1; i >= 0; i--) {
     const f = sc.items[i];
-    if (f === it || f.t !== 'p' || f.link || !scene(f.s) || sealed(f) || (blocked && blocked.has(f.s))) continue;
+    if (f === it || f.t !== 'p' || f.link || !scene(f.s) || sealed(f) || (blocked && blocked.has(f.s)) || (riders && riders.some(r => r.id === f.id))) continue;
     const c = scene(f.s), Mi = mul(M, localMatrix(f, M)), [u, v] = ap(inv(Mi), px, py);
     if (!openingContains(frameOf(f).shape, c.w, c.h, u, v)) continue;
     if (size > scaleOf(Mi) * Math.min(c.w, c.h) * 0.9) continue;
@@ -4608,7 +4627,7 @@ function moveItemTo(it, from, to, L, at) {
   if (at == null) to.items.push(it); else to.items.splice(at, 0, it);
   pops.set(it.id, performance.now());
 }
-function putInto(it, f) {
+function putInto(it, f, riders) {
   const sc = rootScene(), inner = scene(f.s), k = itemScale(f), [ux, uy] = ap(inv(localMatrix(f, camMatrix())), it.x, it.y);
   moveItemTo(it, sc, inner, sim(ux, uy, it.rot - f.rot, itemScale(it) / k)); // where you dropped it, standing up straight
   // Put away, things shrink to fit the shelf they're going on.
@@ -4616,12 +4635,13 @@ function putInto(it, f) {
   if (big > cap) it.size *= cap / big;
   settleOnSurface(it, inner, cam.z * k);
   roomPlace(inner, it, cam.z * k);
+  bringRiders(sc, inner, it, riders);
   if (hasDoors(f)) f.open = true; // its doors stay open, so you can see it in there
   select(null);
   const F = frameOf(f);
   toast((F.noShadow ? 'Off to the ' : 'Put inside the ') + F.label.toLowerCase());
 }
-function takeOut(it) {
+function takeOut(it, riders) {
   const k = path.length - 1;
   if (k === 0) return false;
   const sc = rootScene(), portal = portalItemOf(k), [mx, my] = ap(localMatrix(it), ...itemMiddle(it));
@@ -4630,6 +4650,7 @@ function takeOut(it) {
   moveItemTo(it, sc, parent, mul(localMatrix(portal), sim(it.x, it.y, it.rot, itemScale(it))), parent.items.indexOf(portal) + 1);
   settleOnSurface(it, parent, cam.z / itemScale(portal));
   roomPlace(parent, it, cam.z / itemScale(portal));
+  bringRiders(sc, parent, it, riders);
   select(null);
   toast('Moved out to ' + (parent.name || 'the page'));
   return true;
@@ -4675,16 +4696,81 @@ function settleOnSurface(it, sc, zoom) {
   return true;
 }
 // Where a dropped sticker went, as the name of the sound it makes: into furniture, out of it, onto a shelf, or just down.
-function settleAfterDrag(id) {
-  const sc = rootScene(), it = findItem(sc, id), target = dropHint && findItem(sc, dropHint);
+function settleAfterDrag(g) {
+  const sc = rootScene(), it = findItem(sc, g.id), target = dropHint && findItem(sc, dropHint), riders = g.riders || [];
   dropHint = null;
   let how = null;
   if (!it) how = null;
-  else if (target && target !== it) { putInto(it, target); how = 'into'; }
-  else if (takeOut(it)) how = 'out';
-  else { clampItem(it); roomSnap(sc, it); how = settleOnSurface(it, sc, cam.z) ? 'tock' : 'pat'; roomPlace(sc, it); }
+  else if (target && target !== it) { putInto(it, target, riders); how = 'into'; }
+  else if (takeOut(it, riders)) how = 'out';
+  else {
+    clampItem(it); roomSnap(sc, it); how = settleOnSurface(it, sc, cam.z) ? 'tock' : 'pat'; roomPlace(sc, it);
+    carry(sc, it, riders);
+    const def = riders.length && !rideTipShown && defOf(it);
+    if (def) { rideTipShown = true; toast('Everything on the ' + (def.name || def.label).toLowerCase() + ' comes with it'); }
+  }
   peekDoors(null);
   return how;
+}
+
+/* ----- what stands on a table goes where the table goes ----- */
+// Whatever stands on a sticker's top or shelves (and whatever stands on those) moves with it as one piece: drag the
+// table and the lamp on it comes too; turn, grow, flip, copy or remove the bookcase and its books go with it. They're
+// found afresh from where their feet are each time, so nothing extra is saved, and a lamp lifted off the table simply
+// stops coming along. Each rider keeps `rel`, where it stands as seen from the sticker it stands on.
+function ridersOf(sc, it) {
+  const lines = it && sc.items.includes(it) ? surfacesIn(sc) : [], on = new Set([it]);
+  if (!lines.some(f => f.owner === it)) return []; // nothing to stand on (most stickers)
+  for (let more = true; more;) {
+    more = false;
+    for (const o of sc.items) {
+      if (on.has(o) || o.wall || (o.t === 'a' && ART[o.a] && ART[o.a].floor) || (o.t === 'p' && !scene(o.s))) continue;
+      const e = itemExtent(o), by = restingOn(lines, o, Math.max(0.005 * sc.w, 0.03 * (e[3] - e[1]) * itemScale(o)));
+      if (by && on.has(by)) { on.add(o); more = true; }
+    }
+  }
+  const P = inv(poseOf(it));
+  return sc.items.filter(o => o !== it && on.has(o)).map(o => ({ id: o.id, rel: mul(P, poseOf(o)) }));
+}
+// Where a sticker is, as one matrix that includes its flip (so a rider on something turned round like a card turns too).
+function poseOf(it) { const m = sim(it.x, it.y, it.rot, itemScale(it)); return it.flip && it.t !== 'p' ? mul(m, mat(-1, 0, 0, 1, 0, 0)) : m; }
+function setPose(it, L) {
+  const m = L.a * L.d - L.b * L.c < 0, s = Math.hypot(L.a, L.b); // m: mirrored
+  it.x = L.e; it.y = L.f; it.rot = Math.atan2(m ? -L.b : L.b, m ? -L.a : L.a);
+  it.size = it.t === 'p' ? s * scene(it.s).w : s;
+  if (it.t !== 'p') it.flip = m; // (frames never flip)
+}
+// Put each rider back in its place on `it`, after it has moved, turned, grown or flipped.
+function carry(sc, it, riders) {
+  if (!riders || !riders.length) return;
+  const L = poseOf(it);
+  for (const r of riders) { const o = findItem(sc, r.id); if (o) setPose(o, mul(L, r.rel)); }
+  riderOrder(sc, it, riders);
+}
+// Riders stay in front of what they stand on: in a room each finds its place front to back (just after it); anywhere
+// else they come forward to just in front of it, if it has ended up over them.
+function riderOrder(sc, it, riders) {
+  const list = (riders || []).map(r => findItem(sc, r.id)).filter(Boolean);
+  if (!list.length) return;
+  if (isRoom(sc)) { for (const o of list) roomPlace(sc, o); return; }
+  const i = sc.items.indexOf(it);
+  if (list.every(o => sc.items.indexOf(o) > i)) return;
+  sc.items = sc.items.filter(o => !list.includes(o));
+  sc.items.splice(sc.items.indexOf(it) + 1, 0, ...list);
+}
+// Moved into furniture or out of it, `it` takes its riders along, standing just where they stood on it.
+function bringRiders(from, to, it, riders) {
+  const list = (riders || []).map(r => findItem(from, r.id)).filter(Boolean), now = performance.now();
+  if (!list.length) return;
+  from.items = from.items.filter(o => !list.includes(o));
+  to.items.splice(to.items.indexOf(it) + 1, 0, ...list);
+  for (const o of list) pops.set(o.id, now);
+  carry(to, it, riders);
+}
+// The sticker being dragged is drawn lifted, and so is what stands on it.
+function lift(g) {
+  liftedId = g ? g.id : null;
+  liftedWith = g && g.riders && g.riders.length ? new Set(g.riders.map(r => r.id)) : null;
 }
 
 /* ----- pointer gestures ----- */
@@ -4700,16 +4786,16 @@ function onDown(e) {
     const curl = curlAt(e.clientX, e.clientY), pip = !curl && pipAt(e.clientX, e.clientY);
     const hit = curl || pip ? null : hitTest(e.clientX, e.clientY);
     if (curl) gesture = { ...base, mode: 'curl', dir: curl };
-    else if (hit && hit.handle) gesture = { ...base, mode: 'handle', id: hit.item.id, before: snapshot(), ...handleGrip(hit.item) };
+    else if (hit && hit.handle) gesture = { ...base, mode: 'handle', id: hit.item.id, before: snapshot(), riders: ridersOf(rootScene(), hit.item), ...handleGrip(hit.item) };
     else if (hit && hit.tilt) gesture = { ...base, mode: 'tilt', id: hit.item.id, before: snapshot(), ...tiltGrip(hit.item, e.clientX, e.clientY) };
-    else if (hit) { select(hit.item); gesture = { ...base, mode: 'drag', id: hit.item.id, before: snapshot() }; liftedId = hit.item.id; }
+    else if (hit) { select(hit.item); gesture = { ...base, mode: 'drag', id: hit.item.id, before: snapshot(), riders: ridersOf(rootScene(), hit.item) }; lift(gesture); }
     else gesture = { ...base, mode: 'pan', canTurn: atRest() };
     panHist = [{ t: e.timeStamp, x: e.clientX, y: e.clientY }];
   } else if (pointers.size === 2) {
     if (gesture && (gesture.mode === 'drag' || gesture.mode === 'handle' || gesture.mode === 'tilt')) {
-      gesture = { mode: 'twist', id: gesture.id, before: gesture.before, moved: true };
-      liftedId = gesture.id; dropHint = null;
-    } else { gesture = { mode: 'pinch', moved: true }; liftedId = null; }
+      gesture = { mode: 'twist', id: gesture.id, before: gesture.before, moved: true, riders: gesture.riders || ridersOf(rootScene(), itemById(gesture.id)) };
+      lift(gesture); dropHint = null;
+    } else { gesture = { mode: 'pinch', moved: true }; lift(null); }
   }
   requestRender();
 }
@@ -4743,7 +4829,7 @@ function onMove(e) {
     applyScreen(mat(1, 0, 0, 1, p.x - px, p.y - py));
     panHist.push({ t: e.timeStamp, x: p.x, y: p.y });
     while (panHist.length > 2 && e.timeStamp - panHist[0].t > 100) panHist.shift();
-  } else if (g.mode === 'drag') moveItemBy(g.id, p.x - px, p.y - py);
+  } else if (g.mode === 'drag') moveItemBy(g, p.x - px, p.y - py);
   else if (g.mode === 'handle') handleDrag(g, px, py, p.x, p.y);
   else if (g.mode === 'tilt') tiltDrag(g, p.x, p.y);
   else if (g.mode === 'pinch' || g.mode === 'twist') {
@@ -4751,7 +4837,7 @@ function onMove(e) {
     for (const [id, q] of pointers) if (id !== e.pointerId) { other = q; break; }
     if (!other) return;
     const S = pairSim({ x: px, y: py }, other, { x: p.x, y: p.y }, other, g.mode === 'twist');
-    if (g.mode === 'pinch') applyScreen(S); else transformItem(g.id, S);
+    if (g.mode === 'pinch') applyScreen(S); else transformItem(g, S);
   }
 }
 
@@ -4776,12 +4862,12 @@ function onUp(e) {
     return;
   }
   if (pointers.size === 0) {
-    gesture = null; liftedId = null;
+    gesture = null; lift(null);
     if (g) {
       if (!g.moved && g.mode !== 'pinch' && g.mode !== 'twist' && e.type === 'pointerup') handleTap(e.clientX, e.clientY, e.timeStamp, g.mode === 'pan' ? null : g.id, g.mode === 'drag');
       if (g.moved && (g.mode === 'drag' || g.mode === 'handle')) tidySpin(g.id);
-      if (g.moved && g.mode === 'drag') { const how = settleAfterDrag(g.id); if (how) sfx(how); }
-      else if (g.moved && (g.mode === 'handle' || g.mode === 'twist') && itemById(g.id)) roomPlace(rootScene(), itemById(g.id));
+      if (g.moved && g.mode === 'drag') { const how = settleAfterDrag(g); if (how) sfx(how); }
+      else if (g.moved && (g.mode === 'handle' || g.mode === 'twist') && itemById(g.id)) { const it = itemById(g.id); roomPlace(rootScene(), it); carry(rootScene(), it, g.riders); }
       if (g.moved && (g.mode === 'drag' || g.mode === 'handle' || g.mode === 'twist' || g.mode === 'tilt')) { commitUndo(g.before); syncSelbar(); }
       if (g.moved && g.mode === 'pan') {
         const { vx, vy } = flickSpeed(e.timeStamp);
@@ -4792,9 +4878,9 @@ function onUp(e) {
     settleRotation();
   } else if (pointers.size === 1) {
     const rest = [...pointers.values()][0];
-    if (g && g.mode === 'twist') gesture = { mode: 'drag', id: g.id, before: g.before, moved: true, sx: rest.x, sy: rest.y };
+    if (g && g.mode === 'twist') gesture = { mode: 'drag', id: g.id, before: g.before, moved: true, sx: rest.x, sy: rest.y, riders: g.riders };
     else gesture = { mode: 'pan', moved: true, sx: rest.x, sy: rest.y };
-    liftedId = gesture.mode === 'drag' ? gesture.id : null;
+    lift(gesture.mode === 'drag' ? gesture : null);
     panHist = [];
   }
   requestRender();
@@ -4933,7 +5019,11 @@ function tapItem(it) {
   sfx(r.snd, 90);
   requestRender();
 }
-function startMove(id, move) { if (move && MOVES[move] && !reduceMotion) jiggles.set(id, { move, t0: performance.now(), dur: MOVES[move].dur }); }
+function startMove(id, move) {
+  if (!move || !MOVES[move] || reduceMotion) return;
+  jiggles.set(id, { move, t0: performance.now(), dur: MOVES[move].dur });
+  for (const r of ridersOf(rootScene(), itemById(id))) ridesWith.set(r.id, id); // the cat on the sofa bounces with it
+}
 
 /* ----- the little moves: each gives a squash and stretch, a turn, and a nudge (in widths and heights) at time t ----- */
 function hopAt(t, n) {
@@ -5335,21 +5425,32 @@ function act(name) {
   const sc = rootScene();
   if (name === 'enter') { if (sealed(it)) enterSealed(it); else diveInto(it); return; }
   if (name === 'send') { openSendSheet({ kind: 'box', s: it.s, c: it.c || 0 }); return; }
+  // what stands on it goes with it: removed, copied, turned round, or moved forward and back along with it
+  const riders = ridersOf(sc, it);
   if (name === 'del') {
-    change(() => { sc.items = sc.items.filter(x => x !== it); });
+    const gone = new Set([it.id, ...riders.map(r => r.id)]);
+    change(() => { sc.items = sc.items.filter(x => !gone.has(x.id)); });
     select(null);
     sfx('gone');
-    toast(it.t === 'p' && !it.link ? 'Removed, along with the world inside. Undo brings it back.' : 'Sticker removed');
+    toast(it.t === 'p' && !it.link ? 'Removed, along with the world inside. Undo brings it back.' : riders.length ? 'Removed, with everything on it. Undo brings it back.' : 'Sticker removed');
     return;
   }
   if (name === 'dup') {
     change(() => {
-      const copy = JSON.parse(JSON.stringify(it));
-      const off = 22 / cam.z;
-      copy.id = newId('i'); copy.x += off; copy.y += off;
-      delete copy.gid; // only the present itself tells its sender it was unwrapped
-      if (it.t === 'p' && !it.link) copy.s = duplicateWorld(it.s);
-      clampItem(copy); sc.items.push(copy); roomPlace(sc, copy); pops.set(copy.id, performance.now()); select(copy);
+      const twin = o => {
+        const copy = JSON.parse(JSON.stringify(o));
+        copy.id = newId('i');
+        delete copy.gid; // only the present itself tells its sender it was unwrapped
+        if (o.t === 'p' && !o.link) copy.s = duplicateWorld(o.s);
+        pops.set(copy.id, performance.now());
+        return copy;
+      };
+      const copy = twin(it), off = 22 / cam.z;
+      copy.x += off; copy.y += off;
+      clampItem(copy); sc.items.push(copy); roomPlace(sc, copy);
+      const more = riders.map(r => { const o = twin(itemById(r.id)); sc.items.push(o); return { id: o.id, rel: r.rel }; });
+      carry(sc, copy, more);
+      select(copy);
     });
     sfx('pop');
     return;
@@ -5363,8 +5464,8 @@ function act(name) {
     return;
   }
   if (name === 'flip') {
-    change(() => { it.flip = !it.flip; });
-    if (!reduceMotion) flipping.set(it.id, performance.now());
+    change(() => { it.flip = !it.flip; carry(sc, it, riders); });
+    if (!reduceMotion) { flipping.set(it.id, performance.now()); for (const r of riders) ridesWith.set(r.id, it.id); }
     sfx('flipCard');
     return;
   }
@@ -5377,10 +5478,17 @@ function act(name) {
     if (to && !tiltTipShown) { tiltTipShown = true; toast('Tilt it with the arrows, turn it with the corner'); }
     return;
   }
-  if (name === 'front' || name === 'back') {
-    const i = sc.items.indexOf(it), j = name === 'front' ? i + 1 : i - 1;
+  if (name === 'front' || name === 'back') { // it goes past the next thing that isn't standing on it, taking its riders
+    const piece = new Set([it.id, ...riders.map(r => r.id)]), d = name === 'front' ? 1 : -1;
+    let j = sc.items.indexOf(it) + d;
+    while (j >= 0 && j < sc.items.length && piece.has(sc.items[j].id)) j += d;
     if (j < 0 || j >= sc.items.length) { toast(name === 'front' ? 'Already on top' : 'Already at the back'); return; }
-    change(() => { sc.items.splice(i, 1); sc.items.splice(j, 0, it); });
+    const past = sc.items[j];
+    change(() => {
+      const rest = sc.items.filter(o => !piece.has(o.id));
+      rest.splice(rest.indexOf(past) + (d > 0 ? 1 : 0), 0, ...sc.items.filter(o => piece.has(o.id)));
+      sc.items = rest;
+    });
     sfx('blip');
   }
 }
