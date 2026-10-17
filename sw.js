@@ -1,6 +1,6 @@
 /* Sticker Worlds outside Claude: keeps the page, its icons and its fonts, so it opens without a connection.
    build.sh stamps the build into CACHE, so each new build replaces the old copy. */
-const CACHE = 'sticker-worlds-2612774048';
+const CACHE = 'sticker-worlds-1126040884';
 const SHELL = ['./', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap';
 

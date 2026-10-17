@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name=robots content=noindex><meta name=theme-color media="(prefers-color-scheme: light)" content="#2c6e60"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#163a32"><meta name=apple-mobile-web-app-capable content=yes><meta name=mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=black-translucent><meta name=apple-mobile-web-app-title content="Sticker Worlds"><link rel=manifest href=manifest.webmanifest><link rel=icon href=icon-192.png><link rel=apple-touch-icon href=icon-180.png><style>:root{color-scheme:light;touch-action:manipulation}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><title>Sticker Worlds</title>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name=robots content=noindex><meta name=theme-color media="(prefers-color-scheme: light)" content="#2c6e60"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#163a32"><meta name=apple-mobile-web-app-capable content=yes><meta name=mobile-web-app-capable content=yes><meta name=apple-mobile-web-app-status-bar-style content=black-translucent><meta name=apple-mobile-web-app-title content="Sticker Worlds"><link rel=manifest href=manifest.webmanifest><link rel=icon href=icon-192.png><link rel=apple-touch-icon href=icon-180.png><meta property=og:title content="Sticker Worlds"><meta property=og:description content="A sticker book where cabinets, fridges, windows and planets open into whole new scenes."><meta property=og:image content="https://daveyxjones.github.io/Sticker-World-Play/icon-512.png"><style>:root{color-scheme:light;touch-action:manipulation}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style><title>Sticker Worlds</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
@@ -142,7 +142,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .tab[aria-selected="true"] { background: var(--ink); color: var(--sheet); }
 /* Photos stays at the left edge while the other tabs scroll under it, so it can always be found */
 /* (its chip is ::before over a strip of sheet, ::after, that hides the tabs passing underneath) */
-.tab.pin, .tab.pin[aria-selected="true"] { position: sticky; left: 0; z-index: 1; background: none; }
+.tab.pin, .tab.pin[aria-selected="true"] { position: sticky; left: 0; z-index: 1; background: none; margin-right: 14px; } /* the fade's width, so it never covers the next tab at rest */
 .tab.pin::before, .tab.pin::after { content: ''; position: absolute; }
 .tab.pin::before { z-index: -1; inset: 0; border-radius: inherit; background: var(--chip); }
 .tab.pin[aria-selected="true"]::before { background: var(--ink); }
@@ -220,10 +220,10 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .page-tools .danger { color: var(--berry); }
 .confirm-sheet p { margin: 4px 2px 16px; font-weight: 700; font-size: 16px; }
 
-.menu-list { display: grid; gap: 8px; }
+.menu-list { display: grid; gap: 8px; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; } /* scrolls on a short phone */
 .menu-list button {
   display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: var(--chip);
-  border-radius: 14px; padding: 13px 16px; text-align: left; font-weight: 800; font-size: 15px;
+  border-radius: 14px; padding: 11px 16px; text-align: left; font-weight: 800; font-size: 15px;
 }
 .save-status { margin: -4px 2px 12px; color: var(--ink-soft); font-size: 13.5px; }
 .confirm-row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
@@ -377,6 +377,12 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
     <button type="button" id="mPages">
       <svg class="i" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 4 5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V5c-3-.5-6 0-8 1.5z"/><path d="M12 6.5v13"/></svg>Pages, and adding a new page
     </button>
+    <button type="button" id="mBackup" hidden>
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg>Save a backup of my book
+    </button>
+    <button type="button" id="mRestore">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 19h14"/></svg>Load a backup
+    </button>
     <button type="button" id="mSound" role="switch" aria-checked="true">
       <svg class="i" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="snd-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="snd-off" d="m16 9.5 5 5M21 9.5l-5 5"/></svg><span id="mSoundLabel">Sounds on</span>
     </button>
@@ -423,9 +429,12 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
     <h2 class="sheet-title" id="sendTitle">Send this present</h2>
     <div class="people" id="sendWho" role="radiogroup" aria-label="Send it to"></div>
     <p class="hint" id="sendHint"></p>
+    <label class="field" id="sendFromRow" hidden><span>From (your name, for the tag)</span><input id="sendFrom" type="text" maxlength="30" enterkeyhint="next" autocomplete="nickname"></label>
     <label class="field" id="sendNoteRow"><span>A note on the tag (if you like)</span><input id="sendNote" type="text" maxlength="60" enterkeyhint="send" autocomplete="off"></label>
+    <label class="field" id="sendLinkRow" hidden><span>Copy this link and paste it into a message</span><input id="sendLink" type="text" readonly></label>
     <div class="confirm-row">
       <button type="button" id="sendNo">Not now</button>
+      <button type="button" id="sendMsg" hidden>By message</button>
       <button type="button" id="sendGo" class="primary">Send it</button>
     </div>
   </div>
@@ -491,10 +500,12 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <input type="file" id="fileInput" accept="image/*" hidden>
+<input type="file" id="backupInput" accept="application/json,.json,text/plain,.txt" hidden>
 <script>
 (() => {
 'use strict';
 const STANDALONE = true;
+const SITE_URL = 'https://daveyxjones.github.io/Sticker-World-Play/';
 /* ---------- core: 2D math, the camera, and the world model ---------- */
 const TAU = Math.PI * 2;
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
@@ -756,6 +767,7 @@ function parseWorld(json) {
         if (it.fx !== undefined && !(it.t === 'e' && FINISHES[it.fx])) delete it.fx;   // one of Pip's shiny presents
         if (it.wrapped !== undefined && !(it.wrapped === true && it.f === 'gift')) delete it.wrapped; // a present not unwrapped yet,
         if (it.note !== undefined) { if (typeof it.note === 'string' && it.t === 'p') it.note = it.note.slice(0, 80); else delete it.note; } // what's on its tag
+        if (it.by !== undefined) { if (typeof it.by === 'string' && it.f === 'gift') it.by = it.by.slice(0, 30); else delete it.by; } // who sent it by message
         for (const k of ['gid', 'from']) if (it[k] !== undefined && !(typeof it[k] === 'string' && /^[\w\-.~:@+]{1,120}$/.test(it[k]))) delete it[k]; // and where it came from
         if (it.n !== undefined && !(it.f === 'advent' && Number.isInteger(it.n) && it.n >= 1 && it.n <= 24)) delete it.n; // an advent door's day,
         if (it.lock !== undefined && !(it.f === 'advent' && Number.isInteger(it.lock) && it.lock > 2000 && it.lock < 3000)) delete it.lock; // and its year
@@ -5521,7 +5533,7 @@ function syncSelbar() {
   if (!cur) return;
   $('actEnter').hidden = cur.t !== 'p'; $('actFlip').hidden = cur.t === 'p'; $('actTilt').hidden = !canTilt(cur);
   $('actTint').hidden = !(def && def.tints && def.tints.length > 1);
-  $('actSend').hidden = STANDALONE || !(cur.t === 'p' && cur.f === 'gift');
+  $('actSend').hidden = !(cur.t === 'p' && cur.f === 'gift');
   $('actTilt').dataset.flat = cur.tilt ? 'true' : 'false';
 }
 function onPathChanged() {
@@ -5559,7 +5571,7 @@ function addSticker(spec, extra) {
   sfx('pop');
   if (spec.t === 'p') {
     const what = 'the ' + label.toLowerCase();
-    toast(spec.f === 'infinity' ? 'This frame shows the scene it sits in, forever.' : spec.f === 'gift' && !STANDALONE ? 'Fill the gift box, then tap Send to give it to someone'
+    toast(spec.f === 'infinity' ? 'This frame shows the scene it sits in, forever.' : spec.f === 'gift' ? 'Fill the gift box, then tap Send to give it to someone'
       : FRAMES[spec.f].doors ? 'Tap ' + what + ' to open it, double-tap to step inside' : 'Double-tap ' + what + ' to step inside.');
   }
 }
@@ -5716,7 +5728,7 @@ function stickerButton(spec) {
 function renderTray(tab) {
   trayTab = tab;
   const pin = $('trayTabs').querySelector('.pin');
-  if (pin) $('trayTabs').style.scrollPaddingLeft = pin.offsetWidth + 10 + 'px'; // so a tab scrolled to isn't left under it
+  if (pin) $('trayTabs').style.scrollPaddingLeft = pin.offsetWidth + 24 + 'px'; // so a tab scrolled to isn't left under it or its fade
   for (const b of $('trayTabs').children) {
     b.setAttribute('aria-selected', b.dataset.tab === tab ? 'true' : 'false');
     if (b.dataset.tab === tab) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
@@ -5889,14 +5901,18 @@ function wireUI() {
   $('fileInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; closeSheets(); if (f) importImage(f); });
   document.addEventListener('paste', e => {
     if (e.target && e.target.closest && e.target.closest('input')) return;
-    const items = e.clipboardData ? [...e.clipboardData.items] : [];
+    const items = e.clipboardData ? [...e.clipboardData.items] : [], text = e.clipboardData ? e.clipboardData.getData('text') : '';
+    const present = findPresentLink(text); // a present sent by message (share.js)
+    if (present) { e.preventDefault(); closeSheets(); openPresentLink(present, text); return; }
     const imgItem = items.find(i => i.kind === 'file' && /^image\//.test(i.type));
     if (imgItem) { e.preventDefault(); closeSheets(); importImage(imgItem.getAsFile()); return; }
-    if (e.target && e.target.classList && e.target.classList.contains('paste-box')) { e.preventDefault(); toast('That wasn’t a picture. Copy a photo or cutout first.'); }
+    const box = e.target && e.target.closest && e.target.closest('.paste-box');
+    if (box) { e.preventDefault(); toast(box.dataset.for === 'present' ? 'There’s no present link to paste. Copy the link from the message first.' : 'That wasn’t a picture. Copy a photo or cutout first.', 3800); }
   });
   wireCutter();
   wirePages();
   wireMail();
+  wireShare();
 }
 /* ---------- the pages sheet: the book's contents, plus adding, naming, moving and removing pages ---------- */
 const NEW_PAGE_BGS = [...ROOM_BGS, 'roomHouse', 'living', 'bedroom', 'kitchen', 'shop', 'universe', 'meadow', 'beach', 'snow', 'garden', 'forest', 'ocean', 'night', 'candy', 'mars', 'moon', 'clouds', 'room', 'paper'];
@@ -5939,7 +5955,7 @@ function renderPages() {
   $('pageNameRow').hidden = cover;
   $('pageName').value = cur.name || '';
   $('pgEarlier').hidden = $('pgLater').hidden = $('pgDelete').hidden = cover;
-  $('pgSend').hidden = cover || STANDALONE;
+  $('pgSend').hidden = cover;
   $('pgEarlier').disabled = bookPage <= 1;
   $('pgLater').disabled = bookPage >= doc.pages.length - 1;
   $('pgDelete').disabled = doc.pages.length <= 2;
@@ -6057,7 +6073,7 @@ function pipRef() { return Store.db.doc('data/users/' + Store.uid + '/pip'); } /
 function setSaveStatus() {
   const text = {
     cloud: 'Saved to your Claude account, so it’s there on any device.',
-    local: STANDALONE ? (homeScreen() ? 'Saved on this device.' : 'Saved in this browser. Add it to your Home Screen to keep it safe: browsers can clear what a site saves if it isn’t opened for a while.')
+    local: STANDALONE ? (homeScreen() ? 'Saved on this device. Save a backup now and then, in case it’s ever lost.' : 'Saved in this browser. Add it to your Home Screen to keep it safe: browsers can clear what a site saves if it isn’t opened for a while.')
       : Store.denied ? 'Saved on this device. Your access to this page doesn’t let it save to your Claude account: ask for Editor access in Claude’s Share menu.'
         : 'Saved on this device. Sign in to Claude to keep it in your account.',
     memory: 'This browser isn’t letting the page save, so changes disappear when you close it.',
@@ -6113,11 +6129,13 @@ async function initStorage() {
       schedulePrewarm();
       loadPip(); // once the book is here, so she hides in it
       startMail(); // and presents go into it
+      setBookReady();
     }, 170);
   } else {
     if (userTouched) markDirty();
     loadPip();
     startMail();
+    setBookReady();
   }
 }
 
@@ -6640,7 +6658,8 @@ async function loadPip() {
 /* ---------- gift boxes: a present that opens into a world, filled in one book and sent to another (see mail.js) ---------- */
 // A gift box is a frame (`f: 'gift'`). One you add yourself stands open, ready to fill; one that arrives from someone
 // else is `wrapped` until it's tapped: the bow unties, the paper tears and falls away, and the lid pops up. Until then
-// its world can't be seen or stepped into. `gid` is the present it came as (see mail.js), `from` who sent it, and
+// its world can't be seen or stepped into. `gid` is the present it came as (see mail.js), `from` who sent it (or `by`,
+// their name, when it came as a link in a message: share.js), and
 // `note` what they wrote on the tag.
 const unwrapping = new Map(); // item id -> when its unwrapping started
 const UNWRAP_MS = 1300;
@@ -6867,7 +6886,7 @@ function diveAfterUnwrap(it) {
 }
 // "From Anna: “Happy Sunday!”", for when it's unwrapped.
 async function giftFromText(it) {
-  const name = await nameOf(it.from), note = it.note ? '“' + it.note + '”' : '';
+  const name = it.by || await nameOf(it.from), note = it.note ? '“' + it.note + '”' : '';
   if (name && note) return '💌 From ' + name + ': ' + note;
   if (name) return '🎁 A present from ' + name;
   return note ? '💌 ' + note : '';
@@ -7060,7 +7079,7 @@ function addAdventPage() {
   closeSheets();
   if (beginTurn(1)) animateTurn(1, 760); else goToPage(at);
   sfx('jingle');
-  setTimeout(() => toast('24 little doors, each with a world to fill.' + (STANDALONE ? '' : ' When it’s ready, send it from Pages.'), 4800), 850);
+  setTimeout(() => toast('24 little doors, each with a world to fill. When it’s ready, send it from Pages.', 4800), 850);
 }
 // A small picture of a calendar, for the new-page picker and presents: `c` is set up so the page is 1 wide, centred.
 function adventPreview(c) {
@@ -7091,10 +7110,11 @@ Object.assign(SFX, {
 const Mail = { on: false, db: null, user: null, uid: null, canWrite: null, people: [], inbox: [], sent: [], queue: [], news: [], told: new Set(), carded: new Set(), cardFor: null, pruned: false, busy: false, newsOn: false, cardTimer: 0 };
 const mailWrites = new Map(); // gift id -> its last write, so writes to one document go one at a time
 const ID_RE = /^[\w\-.~:@+]{1,120}$/;
-let sending = null; // what the Send sheet sends: { kind: 'box' | 'page', s: its scene, c: a box's colour, to: who }
+// what the Send sheet sends: { kind: 'box' | 'page', s: its scene, c: a box's colour, to: who, or byMessage and its link (share.js) }
+let sending = null;
 let placing = false;
 
-if (!STANDALONE) TABS.splice(1, 0, { id: 'mail', label: 'For you', icon: '🎁' }); // after Photos, which stays first
+TABS.splice(1, 0, { id: 'mail', label: 'For you', icon: '🎁' }); // after Photos, which stays first
 SHEETS.push('sendSheet');
 
 function utf8Len(s) { return new TextEncoder().encode(s).length; }
@@ -7160,7 +7180,7 @@ function gotMail() {
   updateMailButton();
   if (openSheetId === 'tray' && trayTab === 'mail') renderTray('mail');
   const there = id => Mail.inbox.some(g => g.id === id); // a present taken back goes from the cards too
-  Mail.queue = Mail.queue.filter(g => there(g.id));
+  Mail.queue = Mail.queue.filter(g => g.link || there(g.id));
   if (!$('mailCard').hidden && Mail.cardFor && !there(Mail.cardFor)) closeMailCard();
   for (const g of [...Mail.inbox].reverse()) if (!g.seen && !Mail.carded.has(g.id)) { Mail.carded.add(g.id); Mail.queue.push(g); }
   nextMailCard();
@@ -7174,20 +7194,27 @@ function nextMailCard() {
   if (!$('welcome').hidden || !$('pipCard').hidden || !$('mailCard').hidden || turn) { Mail.cardTimer = setTimeout(nextMailCard, 1200); return; }
   showMailCard(Mail.queue.shift());
 }
+// g.link: a present from a link in a message (share.js), with the sender's name in `by`.
 async function showMailCard(g) {
-  Mail.cardFor = g.id;
-  const name = await nameOf(g.from);
+  Mail.cardFor = g.link ? null : g.id;
+  const name = g.link ? g.by : await nameOf(g.from), copyOver = g.link && safariNotApp();
   $('mailTitle').textContent = g.kind === 'box' ? 'A present for you!' : g.advent ? 'An advent calendar for you!' : 'A new page for you!';
   const about = g.advent ? '24 little doors, one to open each day from 1 December.' : g.kind === 'page' ? 'A page called “' + (g.name || 'New page') + '”.' : '';
-  $('mailText').textContent = [name ? 'From ' + name + '.' : '', about, g.note ? '“' + g.note + '”' : ''].filter(Boolean).join(' ');
+  $('mailText').textContent = [name ? 'From ' + name + '.' : '', about, g.note ? '“' + g.note + '”' : '',
+    copyOver ? 'Playing from the Sticker Worlds icon on your Home Screen? Tap Copy for my app, then open it there and paste it in Stickers, For you.' : ''].filter(Boolean).join(' ');
   const box = $('mailGift');
   box.textContent = ''; box.append(giftTile(g, 132));
-  $('mailUse').textContent = g.kind === 'box' ? 'Put it in my book' : 'Add it to my book';
+  $('mailUse').textContent = copyOver ? 'Put it in this book' : g.kind === 'box' ? 'Put it in my book' : 'Add it to my book';
+  $('mailKeep').textContent = copyOver ? 'Copy for my app' : 'Later';
   $('mailCard').hidden = false; $('mailUse').focus();
-  $('mailUse').onclick = () => { closeMailCard(); placeGift(g); };
-  $('mailKeep').onclick = () => { closeMailCard(); toast('It’s waiting in Stickers, under For you', 3400); };
+  $('mailUse').onclick = () => { closeMailCard(); if (g.link) putPresent(g, g.world, {}); else placeGift(g); };
+  $('mailKeep').onclick = () => {
+    closeMailCard();
+    if (copyOver) copyText(g.url).then(ok => toast(ok ? 'Copied! Now open Sticker Worlds from your Home Screen, and paste it in Stickers, For you.' : 'Couldn’t copy it. Copy the link from the message instead.', 5600));
+    else toast(g.link ? 'Tap the link in the message again whenever you like' : 'It’s waiting in Stickers, under For you', 3800);
+  };
   sfx('mail');
-  if (!g.seen) mailUpdate(g.id, { seen: Date.now() });
+  if (!g.seen && !g.link) mailUpdate(g.id, { seen: Date.now() });
 }
 function closeMailCard() { $('mailCard').hidden = true; setTimeout(nextMailCard, 500); }
 // A picture of a present: the wrapped box, or the page it is.
@@ -7253,36 +7280,43 @@ async function placeGift(g) {
     }
     const w = parseBundle(raw, photos);
     if (!w) { toast('Something’s wrong with that present, so it can’t be opened.'); return; }
-    if (utf8Len(JSON.stringify(doc)) + utf8Len(JSON.stringify(w.scenes)) > 240000) { toast('Your book is too full for this one. Take out a page or two to make room, then try again.', 4600); return; }
-    // fresh ids for every scene, so nothing clashes with what's already in the book
-    const map = {}, scenes = {};
-    for (const id of Object.keys(w.scenes)) map[id] = newId('s');
-    for (const [id, s] of Object.entries(w.scenes)) scenes[map[id]] = { ...s, id: map[id], items: s.items.map(it => (it.t === 'p' ? { ...it, s: map[it.s] } : it)) };
-    const root = map[w.root];
-    if (g.kind === 'page') {
-      const at = bookPage + 1;
-      change(() => { Object.assign(doc.scenes, scenes); addPhotoMetas(photos); doc.pages.splice(at, 0, root); });
-      closeSheets();
-      if (beginTurn(1)) animateTurn(1, 760); else goToPage(at);
-      sfx('jingle');
-      const next = scenes[root].items.filter(doorLocked).sort((a, b) => a.n - b.n)[0];
-      if (isAdventPage(scenes[root])) setTimeout(() => toast('Your advent calendar! ' + (!next ? 'Its doors are ready to open.' : next.n === 1 ? 'Door 1 opens on 1 December.' : 'The doors up to ' + (next.n - 1) + ' are ready to open.'), 4400), 900);
-    } else {
-      change(() => {
-        Object.assign(doc.scenes, scenes); addPhotoMetas(photos);
-        const sc = rootScene(), a = availRect(), [x, y] = ap(inv(camMatrix()), a.cx, a.cy), screen = Math.min(a.w, a.h) / cam.z;
-        const it = { id: newId('i'), t: 'p', f: 'gift', s: root, link: false, c: g.c, x, y, size: Math.min(0.34 * sc.w, 0.5 * screen), rot: -cam.r, flip: false, wrapped: true, gid: g.id, from: g.from };
-        if (g.note) it.note = g.note;
-        clampItem(it); sc.items.push(it); if (isRoom(sc)) roomAdd(sc, it, path.length === 1 && atRest()); pops.set(it.id, performance.now()); select(it);
-      });
-      closeSheets();
-      sfx('pop'); sfx('jingle');
-      setTimeout(() => toast('Tap the present to unwrap it', 3200), 400);
-    }
-    if (!g.placed) mailUpdate(g.id, { placed: Date.now() });
+    if (putPresent(g, w, photos) && !g.placed) mailUpdate(g.id, { placed: Date.now() });
   } catch (e) {
     toast('Couldn’t open the present just now. Try again in a moment.');
   } finally { placing = false; }
+}
+// Put a present's checked world (see parseBundle) in the book, in one undoable change: a box wrapped in the middle of this
+// scene, or a page after this one. g says what it is (kind, c, note) and who it's from: `from`, a user id, for a present
+// from the mailbox (whose id is g.id), or `by`, a name, for one from a link.
+function putPresent(g, w, photos) {
+  if (utf8Len(JSON.stringify(doc)) + utf8Len(JSON.stringify(w.scenes)) > 240000) { toast('Your book is too full for this one. Take out a page or two to make room, then try again.', 4600); return false; }
+  // fresh ids for every scene, so nothing clashes with what's already in the book
+  const map = {}, scenes = {};
+  for (const id of Object.keys(w.scenes)) map[id] = newId('s');
+  for (const [id, s] of Object.entries(w.scenes)) scenes[map[id]] = { ...s, id: map[id], items: s.items.map(it => (it.t === 'p' ? { ...it, s: map[it.s] } : it)) };
+  const root = map[w.root];
+  if (g.kind === 'page') {
+    const at = bookPage + 1;
+    change(() => { Object.assign(doc.scenes, scenes); addPhotoMetas(photos); doc.pages.splice(at, 0, root); });
+    closeSheets();
+    if (beginTurn(1)) animateTurn(1, 760); else goToPage(at);
+    sfx('jingle');
+    const next = scenes[root].items.filter(doorLocked).sort((a, b) => a.n - b.n)[0];
+    if (isAdventPage(scenes[root])) setTimeout(() => toast('Your advent calendar! ' + (!next ? 'Its doors are ready to open.' : next.n === 1 ? 'Door 1 opens on 1 December.' : 'The doors up to ' + (next.n - 1) + ' are ready to open.'), 4400), 900);
+  } else {
+    change(() => {
+      Object.assign(doc.scenes, scenes); addPhotoMetas(photos);
+      const sc = rootScene(), a = availRect(), [x, y] = ap(inv(camMatrix()), a.cx, a.cy), screen = Math.min(a.w, a.h) / cam.z;
+      const it = { id: newId('i'), t: 'p', f: 'gift', s: root, link: false, c: g.c, x, y, size: Math.min(0.34 * sc.w, 0.5 * screen), rot: -cam.r, flip: false, wrapped: true };
+      if (g.link) { if (g.by) it.by = g.by; } else { it.gid = g.id; it.from = g.from; }
+      if (g.note) it.note = g.note;
+      clampItem(it); sc.items.push(it); if (isRoom(sc)) roomAdd(sc, it, path.length === 1 && atRest()); pops.set(it.id, performance.now()); select(it);
+    });
+    closeSheets();
+    sfx('pop'); sfx('jingle');
+    setTimeout(() => toast('Tap the present to unwrap it', 3200), 400);
+  }
+  return true;
 }
 function addPhotoMetas(photos) { for (const [pid, m] of Object.entries(photos)) if (!doc.photos[pid]) doc.photos[pid] = m; }
 
@@ -7327,23 +7361,27 @@ async function sendGift(what, to, note) {
   return gid;
 }
 
+// Through the mailbox to someone with a book here, or as a link in a message (share.js): the only way outside Claude,
+// and the way to anyone not on it.
 function openSendSheet(what) {
-  sending = { ...what, to: sending && sending.to };
+  sending = { ...what, to: sending && sending.to, byMessage: !Mail.on || Mail.canWrite === false };
   openSheet('sendSheet');
   const sc = scene(what.s);
   $('sendTitle').textContent = what.kind === 'box' ? 'Send this present' : isAdventPage(sc) ? 'Send this advent calendar' : 'Send “' + (sc.name || 'this page') + '”';
   $('sendNote').value = '';
+  $('sendFrom').value = savedName();
+  if (!$('sendFrom').value && Store.user) Store.user.name().then(n => { if (n && !$('sendFrom').value) $('sendFrom').value = n.slice(0, 30); }).catch(() => {});
+  $('sendLinkRow').hidden = true;
   renderSendWho();
+  prepareLink();
 }
 let sendDraw = 0;
 async function renderSendWho() {
   const n = ++sendDraw, box = $('sendWho'), hint = $('sendHint'), go = $('sendGo');
-  const block = text => { box.textContent = ''; hint.textContent = text; go.disabled = true; $('sendNoteRow').hidden = true; };
   if (!sending) return;
-  if (!Mail.on) return block('Presents travel from book to book through your Claude accounts, so this needs Sticker Worlds open in Claude, signed in.');
-  if (Mail.canWrite === false) return block('Presents can’t travel with the access you have to this page. Ask whoever shared it to make you an Editor, from Claude’s Share menu.');
   const ids = Mail.people;
-  if (!ids.length) return block('Nobody else keeps a book here yet. Share this page from Claude’s Share menu, and once they’ve opened it you can send each other presents.');
+  if (sending.byMessage || !ids.length) return renderSendMessage(!sending.byMessage);
+  $('sendFromRow').hidden = true; $('sendMsg').hidden = false; go.textContent = 'Send it';
   const ps = Mail.user ? await Mail.user.profiles(ids) : {};
   if (n !== sendDraw || !sending) return;
   if (!ids.includes(sending.to)) sending.to = ids[0];
@@ -7361,8 +7399,24 @@ async function renderSendWho() {
       : 'It arrives as a new page in ' + book + '.';
   go.disabled = false; $('sendNoteRow').hidden = false;
 }
+// The Send sheet sending by message: who it's from, the note, and what will happen (once share.js has squeezed it).
+function renderSendMessage(nobodyHere) {
+  const s = sending, sc = scene(s.s), go = $('sendGo'), n = s.link ? s.link.length : 0;
+  $('sendWho').textContent = ''; $('sendMsg').hidden = true; go.textContent = 'Send by message';
+  $('sendFromRow').hidden = $('sendNoteRow').hidden = false;
+  const what = s.kind === 'box' ? 'the present in their book, wrapped' : sc && isAdventPage(sc) ? 'the calendar as a new page in their book, its doors opening one a day, 1 to 24 December ' + adventYear() : 'it as a new page in their book';
+  const text = [nobodyHere ? 'Nobody else keeps a book on this page yet, so send it as a message.' : '',
+    'It goes as a link in a message. Whoever taps it gets ' + what + '.',
+    s.dropped ? (s.dropped === 1 ? 'The photo sticker in it can’t fit in a message, so it stays behind.' : 'The photo stickers in it can’t fit in a message, so they stay behind.') : '',
+    n > LINK_LONG && n <= LINK_MAX ? 'It’s a big one: if a text message won’t take it, send it with WhatsApp or email.' : ''];
+  if (s.link === '') text.splice(1, 3, 'This browser is too old to send presents by message.');
+  else if (n > LINK_MAX) text.splice(1, 3, 'There’s too much in it to fit in a message. Take a few things out and try again.');
+  $('sendHint').textContent = text.filter(Boolean).join(' ');
+  go.disabled = !s.link || n > LINK_MAX;
+}
 async function doSend() {
   const what = sending, go = $('sendGo');
+  if (what && (what.byMessage || !Mail.people.length)) { sendByMessage(); return; }
   if (!what || !what.to || Mail.busy) return;
   if (!scene(what.s)) { closeSheets(); toast('That isn’t in the book any more.'); return; }
   Mail.busy = true; go.disabled = true; go.textContent = 'Sending…';
@@ -7402,8 +7456,8 @@ async function showNews() {
 
 /* ----- the For you tab in the drawer ----- */
 function renderMailTab(body) {
-  if (!Mail.on) body.append(el('p', { class: 'hint' }, 'Presents travel from book to book through your Claude accounts. Open Sticker Worlds in Claude, signed in, to send and receive them.'));
-  else if (Mail.canWrite === false) body.append(el('p', { class: 'hint' }, 'Presents can’t travel with the access you have to this page. Ask whoever shared it to make you an Editor, from Claude’s Share menu.'));
+  if (!Mail.on) body.append(el('p', { class: 'hint' }, 'Presents travel as a link in a message. Make one below, then select it and tap Send.'));
+  else if (Mail.canWrite === false) body.append(el('p', { class: 'hint' }, 'Presents can’t travel through this page’s mailbox with the access you have, but you can still send them by message.'));
   if (Mail.on) {
     body.append(el('h3', { class: 'tray-sub' }, 'Presents for you'));
     if (!Mail.inbox.length) body.append(el('p', { class: 'hint' }, 'Nothing yet. Presents sent to you wait here.'));
@@ -7422,6 +7476,14 @@ function renderMailTab(body) {
       body.append(grid);
     }
   }
+  body.append(el('h3', { class: 'tray-sub' }, 'A present in a message?'));
+  const row = el('div', { class: 'photo-actions' }), paste = el('button', { class: 'pill-btn', type: 'button' }, '🎁 Paste a present');
+  const pasteBox = el('div', { class: 'paste-box', 'data-for': 'present', contenteditable: 'true', inputmode: 'none', role: 'textbox', 'aria-label': 'Or paste a present link here' }, 'Or paste it here');
+  paste.onclick = pastePresent;
+  pasteBox.addEventListener('beforeinput', e => { if (e.inputType !== 'insertFromPaste') e.preventDefault(); });
+  pasteBox.addEventListener('blur', () => { pasteBox.textContent = 'Or paste it here'; });
+  row.append(paste, pasteBox);
+  body.append(el('p', { class: 'hint' }, 'Tap the link in the message. Or copy the link, come back here and tap Paste a present.'), row);
   body.append(el('h3', { class: 'tray-sub' }, 'Make a present'));
   const make = el('div', { class: 'frame-grid' }), box = el('button', { class: 'frame-tile', type: 'button' }), cal = el('button', { class: 'frame-tile', type: 'button' });
   box.append(framePreview('gift', 76), el('span', null, 'Gift box'));
@@ -7452,6 +7514,246 @@ function wireMail() {
   $('sendGo').onclick = doSend;
   $('sendNote').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); doSend(); } });
   $('pgSend').onclick = () => openSendSheet({ kind: 'page', s: doc.pages[bookPage] });
+}
+/* ---------- backups, and presents sent as a link in a message ---------- */
+// A backup is one file with the whole book and its photos, to keep somewhere safe and load back, in either copy of the
+// page (so it also moves a book from one copy to the other).
+// A present can also go as a link in a message, for books the mailbox can't reach (the copy outside Claude): its world,
+// squeezed (deflate) into the part of the address after #, which browsers never send to the server. Opening the link,
+// or pasting it in Stickers, For you, shows the same card as a present from the mailbox. Photos are far bigger than
+// everything else in a present, too big for a message, so photo stickers stay behind.
+const LINK_LONG = 7500;  // characters: a text message may not carry a longer link (WhatsApp and email take more)
+const LINK_MAX = 60000;  // and nothing takes one much longer
+let bookReady = false;
+const noPhoto = new Set(); // photos a backup couldn't find anywhere
+const afterBook = [];
+// The saved book loads a moment after start-up: a present from a link waits for it, so it goes in the right book.
+function whenBookReady(fn) { if (bookReady) fn(); else afterBook.push(fn); }
+function setBookReady() { bookReady = true; while (afterBook.length) afterBook.shift()(); }
+
+/* ----- squeezing a present into a link, and back ----- */
+function toB64u(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function fromB64u(s) {
+  const b = atob(s.replace(/-/g, '+').replace(/_/g, '/')), out = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) out[i] = b.charCodeAt(i);
+  return out;
+}
+async function squeeze(text) {
+  const cs = new CompressionStream('deflate-raw'), w = cs.writable.getWriter();
+  w.write(new TextEncoder().encode(text)); w.close();
+  return new Uint8Array(await new Response(cs.readable).arrayBuffer());
+}
+// Stops at `max` bytes, so a link can't swell into something huge.
+async function unsqueeze(bytes, max) {
+  const ds = new DecompressionStream('deflate-raw'), w = ds.writable.getWriter(), r = ds.readable.getReader(), parts = [];
+  w.write(bytes).catch(() => {}); w.close().catch(() => {});
+  let n = 0;
+  for (;;) {
+    const { done, value } = await r.read();
+    if (done) break;
+    n += value.length;
+    if (n > max) { r.cancel().catch(() => {}); throw new Error('too big'); }
+    parts.push(value);
+  }
+  const out = new Uint8Array(n);
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return new TextDecoder().decode(out);
+}
+const round5 = (k, v) => (typeof v === 'number' && !Number.isInteger(v) ? +v.toPrecision(5) : v);
+// A present's world made small for a link: short scene ids, no item ids (they're made afresh when it arrives), no
+// photos, and numbers to 5 figures (round5).
+function linkBundle(root, lock) {
+  const b = bundleWorld(root, lock), ids = {}, short = id => ids[id] || (ids[id] = Object.keys(ids).length.toString(36)), scenes = {};
+  let dropped = 0;
+  short(b.root);
+  for (const [id, s] of Object.entries(b.scenes)) {
+    const items = [];
+    for (const it of s.items) {
+      if (it.t === 'ph') { dropped++; continue; }
+      const c = {};
+      for (const k of ITEM_KEYS) if (it[k] !== undefined && it[k] !== false) c[k] = k === 's' ? short(it[k]) : it[k];
+      items.push(c);
+    }
+    scenes[short(id)] = { name: s.name || undefined, bg: s.bg, w: s.w, h: s.h, items };
+  }
+  return { b: { root: short(b.root), scenes }, dropped };
+}
+function linkBase() { return STANDALONE ? location.origin + location.pathname : SITE_URL; }
+// A present link in some text (a whole message, pasted), or null.
+function findPresentLink(text) {
+  const m = /#present=([A-Za-z0-9_-]{8,})([^\s#]*)/.exec(text || '');
+  if (!m) return null;
+  let q = null;
+  try { q = new URLSearchParams(m[2].replace(/^&/, '')); } catch (e) { q = new URLSearchParams(); }
+  const clean = s => (s || '').replace(/[\u0000-\u001f\u007f]/g, '').trim();
+  return { data: m[1], note: clean(q.get('note')).slice(0, 60), by: clean(q.get('from')).slice(0, 30), url: m[0] };
+}
+
+/* ----- a present arriving by link ----- */
+function checkLinkInAddress() {
+  const hash = location.hash, href = location.href;
+  if (!/^#present=/.test(hash)) return;
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* the address keeps it */ }
+  openPresentLink(findPresentLink(hash), href);
+}
+async function openPresentLink(found, text) {
+  if (!found) return;
+  if (typeof DecompressionStream !== 'function') { toast('This browser is too old to open presents. Updating the phone’s software should fix that.', 5200); return; }
+  let p = null;
+  try { p = JSON.parse(await unsqueeze(fromB64u(found.data), 400000)); } catch (e) { p = null; }
+  const w = p && p.v === 1 && (p.k === 'box' || p.k === 'page') ? parseBundle(p.b, {}) : null;
+  if (!w) { toast('That present link is broken, so it can’t be opened. It may have been cut short: ask for it to be sent again.', 5600); return; }
+  whenBookReady(() => {
+    Mail.queue.push({
+      link: true, id: 'link-' + found.data.slice(-10), kind: p.k, advent: p.k === 'page' && isAdventPage(w.scenes[w.root]),
+      c: Number.isInteger(p.c) && p.c >= 0 ? p.c % GIFT_PAPERS.length : 0, name: typeof p.name === 'string' ? p.name.slice(0, 40) : '',
+      bg: w.scenes[w.root].bg, note: found.note, by: found.by, world: w, url: /^https?:/.test(text || '') ? text : linkBase() + found.url,
+    });
+    nextMailCard();
+  });
+}
+// An iPhone or iPad in Safari rather than the Home Screen app: a link from a message always opens here, but the book
+// played from the Home Screen icon is kept apart from Safari's, so the present has to be copied across.
+function safariNotApp() {
+  return STANDALONE && !homeScreen() && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+}
+// Stickers, For you: "Paste a present". Reading the clipboard asks first (on an iPhone, a little Paste bubble to tap).
+async function pastePresent() {
+  let text = null;
+  try { text = await navigator.clipboard.readText(); } catch (e) { text = null; }
+  if (text == null) {
+    const box = document.querySelector('#trayBody .paste-box[data-for="present"]');
+    if (box) box.focus();
+    toast('Touch and hold the box, then tap Paste', 3600);
+    return;
+  }
+  const found = findPresentLink(text);
+  if (!found) { toast('There’s no present link to paste. Copy the link from the message first.', 4000); return; }
+  closeSheets(); openPresentLink(found, text);
+}
+
+/* ----- sending a present by message ----- */
+function savedName() { try { return localStorage.getItem('sw-name') || ''; } catch (e) { return ''; } }
+function rememberName(n) { try { localStorage.setItem('sw-name', n); } catch (e) { /* storage blocked */ } }
+// Squeeze the present when the Send sheet opens, so the share sheet can open straight from the tap on Send.
+async function prepareLink() {
+  const s = sending;
+  if (!s) return;
+  s.link = null;
+  try {
+    const sc = scene(s.s), advent = s.kind === 'page' && isAdventPage(sc), { b, dropped } = linkBundle(s.s, advent ? adventYear() : 0);
+    const json = JSON.stringify({ v: 1, k: s.kind, c: s.kind === 'box' ? (s.c || 0) : 0, name: (sc.name || '').slice(0, 40) || undefined, b }, round5);
+    const data = typeof CompressionStream === 'function' ? toB64u(await squeeze(json)) : '';
+    if (sending !== s) return;
+    s.dropped = dropped; s.link = data ? linkBase() + '#present=' + data : '';
+  } catch (e) { if (sending === s) s.link = ''; }
+  if (sending === s) renderSendWho();
+}
+function sendByMessage() {
+  const s = sending;
+  if (!s || !s.link || s.link.length > LINK_MAX) return;
+  const by = $('sendFrom').value.trim().slice(0, 30), note = $('sendNote').value.trim().slice(0, 60), sc = scene(s.s);
+  if (by) rememberName(by);
+  const url = s.link + (note ? '&note=' + encodeURIComponent(note) : '') + (by ? '&from=' + encodeURIComponent(by) : '');
+  const what = s.kind === 'box' ? '🎁 I made you a present in Sticker Worlds!' : sc && isAdventPage(sc) ? '🎄 I made you an advent calendar in Sticker Worlds!' : '📖 I made you a page for your Sticker Worlds book!';
+  const text = what + ' Tap the link to open it:\n' + url;
+  const done = () => { closeSheets(); sfx('sent'); toast('On its way! Whoever taps the link gets it in their book.', 4200); };
+  if (navigator.share) navigator.share({ text }).then(done, err => { if (!err || err.name !== 'AbortError') copyLink(text, url); });
+  else copyLink(text, url);
+}
+// No share sheet here (or it isn't allowed): copy it instead, and failing that show it to copy by hand.
+function copyLink(text, url) {
+  const shown = () => {
+    $('sendLinkRow').hidden = false; $('sendLink').value = url;
+    $('sendLink').focus(); $('sendLink').select();
+    toast('Copy the link and paste it into a message', 4200);
+  };
+  copyText(text).then(ok => { if (ok) { closeSheets(); sfx('sent'); toast('Copied! Paste it into a message to send it.', 4200); } else shown(); });
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* not allowed here: try the old way */ }
+  try {
+    const t = el('textarea', { readonly: '', style: 'position:fixed;left:-9999px;top:0' });
+    t.value = text; document.body.append(t); t.select();
+    const ok = document.execCommand('copy');
+    t.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+
+/* ----- backups ----- */
+function backupName() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return 'sticker-worlds-backup-' + d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '.json';
+}
+function saveBackup() {
+  closeSheets();
+  // Every photo is usually loaded already. If one isn't, fetch it first: the share sheet then needs another tap, since
+  // it only opens straight from one.
+  const missing = Object.keys(doc.photos).filter(pid => !photoData.has(pid) && !noPhoto.has(pid));
+  if (missing.length) {
+    toast('Getting your photos ready…');
+    Promise.all(missing.map(pid => photoDataFor(pid).then(d => { if (d) photoData.set(pid, d); else noPhoto.add(pid); })))
+      .then(() => toast('Ready! Tap Save a backup again.', 4000));
+    return;
+  }
+  flushSave();
+  const photos = {};
+  for (const pid of Object.keys(doc.photos)) if (photoData.has(pid)) photos[pid] = photoData.get(pid);
+  const data = JSON.stringify({ app: 'sticker-worlds', kind: 'backup', v: 1, at: Date.now(), book: doc, photos }), name = backupName();
+  if (downloadsCap) {
+    downloadsCap.save({ filename: name, data }).then(() => toast('Backup saved'), err => { if (!err || err.code !== 'declined') toast('Couldn’t save the backup here.'); });
+    return;
+  }
+  const file = new File([data], name, { type: 'application/json' });
+  const download = () => {
+    const a = el('a', { href: URL.createObjectURL(file), download: name });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 20000);
+    toast('Backup saved in your downloads', 3600);
+  };
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: 'Sticker Worlds backup' }).then(() => toast('Backup saved'), err => { if (!err || err.name !== 'AbortError') download(); });
+  } else download();
+}
+const PHOTO_RE = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
+async function loadBackup(file) {
+  if (file.size > 40e6) { toast('That file is too big to be a Sticker Worlds backup.'); return; }
+  let o = null;
+  try { o = JSON.parse(await file.text()); } catch (e) { o = null; }
+  if (!o || typeof o !== 'object' || o.app !== 'sticker-worlds' || o.kind !== 'backup' || !o.book || typeof o.book !== 'object') {
+    toast('That isn’t a Sticker Worlds backup. Choose a file that Save a backup made.', 4600);
+    return;
+  }
+  // only photos that came with their pictures; stickers of any others are left out by parseWorld
+  const photos = {}, metas = {}, given = o.book.photos && typeof o.book.photos === 'object' ? o.book.photos : {};
+  for (const pid of Object.keys(given).slice(0, 2000)) {
+    const d = o.photos && o.photos[pid], m = given[pid];
+    if (ID_RE.test(pid) && typeof d === 'string' && d.length < 400000 && PHOTO_RE.test(d) && m && m.w > 0 && m.h > 0) {
+      photos[pid] = d; metas[pid] = { w: +m.w, h: +m.h, alpha: !!m.alpha };
+    }
+  }
+  const book = parseWorld({ ...o.book, photos: metas });
+  if (!book) { toast('That backup is damaged, so it can’t be loaded.'); return; }
+  const pages = book.pages.length - 1, when = +o.at ? ' from ' + new Date(+o.at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  askConfirm('Swap this book for the backup' + when + ' (' + pages + (pages === 1 ? ' page' : ' pages') + ')? You can undo this.', 'Load it', async () => {
+    for (const [pid, d] of Object.entries(photos)) if (!photoData.has(pid)) { await showPhoto(pid, d); savePhoto(pid, d); }
+    replaceWorld(book, 'Your backup is back', 0);
+  });
+}
+
+function wireShare() {
+  $('mBackup').onclick = saveBackup;
+  $('mRestore').onclick = () => { closeSheets(); $('backupInput').click(); };
+  $('backupInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) loadBackup(f); });
+  $('sendMsg').onclick = () => { if (sending) { sending.byMessage = true; renderSendWho(); } };
+  addEventListener('hashchange', checkLinkInAddress);
+  checkLinkInAddress();
 }
 /* ---------- the example book, a blank book, and bringing older one-page worlds into a book ---------- */
 // Stickers marked to rest are stood on whatever shelf, table or bed is under them once the book is built.
@@ -7733,11 +8035,11 @@ function resize() {
 }
 
 async function initDownloads() {
-  if (STANDALONE) { $('mSave').hidden = false; return; } // no Claude: savePicture shares or downloads it itself
+  if (STANDALONE) { $('mSave').hidden = $('mBackup').hidden = false; return; } // no Claude: they share or download themselves
   const c = window.claude;
-  if (!c || typeof c.use !== 'function') return;
+  if (!c || typeof c.use !== 'function') { $('mBackup').hidden = false; return; } // the local preview: a plain download
   try { downloadsCap = await c.use('downloads'); } catch (e) { downloadsCap = null; }
-  $('mSave').hidden = !downloadsCap;
+  $('mSave').hidden = $('mBackup').hidden = !downloadsCap;
 }
 
 function boot() {
