@@ -193,6 +193,8 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .bg-tile[aria-pressed="true"] { color: var(--ink); }
 .bg-tile[aria-pressed="true"] canvas { box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--focus); }
 .bg-tile canvas.tall { height: 96px; }
+.bg-grid .grid-head { grid-column: 1 / -1; margin: 6px 2px -2px; font-family: var(--font-display); font-weight: 600; font-size: 16px; }
+.bg-grid .grid-head:first-child { margin-top: 0; }
 
 /* the pages sheet: a contents page for the book */
 .sheet-scroll { overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; padding: 2px 2px 4px; }
@@ -202,6 +204,16 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   border-radius: 14px; padding: 10px 12px; width: 100%; -webkit-user-select: text; user-select: text;
 }
 .field input:focus { outline: none; border-color: var(--focus); background: var(--paper); }
+.field textarea {
+  font: 600 16px/1.35 var(--font-body); color: var(--ink); background: var(--chip); border: 2px solid transparent;
+  border-radius: 14px; padding: 10px 12px; width: 100%; min-height: 108px; resize: none; -webkit-user-select: text; user-select: text;
+}
+.field textarea:focus { outline: none; border-color: var(--focus); background: var(--paper); }
+/* suggestions and comments (Menu): what it's about, and a picture of the screen to go with it */
+.idea-kinds { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.idea-kinds .tab[aria-checked="true"] { background: var(--ink); color: var(--sheet); }
+.check-row { display: flex; align-items: center; gap: 10px; margin: -4px 2px 14px; font-weight: 800; font-size: 14px; }
+.check-row input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--focus); }
 .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 10px 8px; }
 .page-tile { border: 0; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; min-width: 0; }
 .page-tile canvas, .page-tile .add-box { width: 66px; height: 88px; border-radius: 8px; box-shadow: 0 0 0 2px var(--paper), 0 3px 10px rgba(0, 0, 0, 0.2); margin-bottom: 5px; }
@@ -221,6 +233,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .confirm-sheet p { margin: 4px 2px 16px; font-weight: 700; font-size: 16px; }
 
 .menu-list { display: grid; gap: 8px; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; } /* scrolls on a short phone */
+#menuSheet { max-height: min(78vh, 660px); } /* all nine on a 375x812 phone */
 .menu-list button {
   display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: var(--chip);
   border-radius: 14px; padding: 11px 16px; text-align: left; font-weight: 800; font-size: 15px;
@@ -383,6 +396,9 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
     <button type="button" id="mShare">
       <svg class="i" viewBox="0 0 24 24"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6a1.5 1.5 0 0 0-1.5-1.5H16"/></svg>Share and send presents
     </button>
+    <button type="button" id="mIdeas">
+      <svg class="i" viewBox="0 0 24 24"><path d="M5.5 4.5h13A2.5 2.5 0 0 1 21 7v7.5a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3.5V17h-2A2.5 2.5 0 0 1 3 14.5V7a2.5 2.5 0 0 1 2.5-2.5z"/><path d="M8 9h8M8 12.5h5"/></svg>Suggestions and comments
+    </button>
     <button type="button" id="mBackup" hidden>
       <svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14"/></svg>Save a backup of my book
     </button>
@@ -424,6 +440,25 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
       <svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.4 2.8-5.3 5.5-5.3s4.9 1.9 5.5 5.3M18 8v6M15 11h6"/></svg><span>Invite someone to play<small>Send them a link to Sticker Worlds</small></span>
     </button>
     <label class="field" id="shareLinkRow" hidden><span>Copy this link and paste it into a message</span><input id="shareLink" type="text" readonly></label>
+  </div>
+</section>
+
+<section class="sheet" id="ideaSheet" aria-label="Suggestions and comments" hidden>
+  <div class="sheet-grip"></div>
+  <div class="sheet-scroll">
+    <h2 class="sheet-title">Suggestions and comments</h2>
+    <p class="hint">Something you’d love Sticker Worlds to have, or something that isn’t working? Write it here and send it in a message.</p>
+    <div class="idea-kinds" id="ideaKinds" role="radiogroup" aria-label="What it’s about">
+      <button type="button" class="tab" role="radio" data-kind="idea" aria-checked="true"><span class="e" aria-hidden="true">💡</span><span>Idea</span></button>
+      <button type="button" class="tab" role="radio" data-kind="bug" aria-checked="false"><span class="e" aria-hidden="true">🛠️</span><span>Problem</span></button>
+      <button type="button" class="tab" role="radio" data-kind="note" aria-checked="false"><span class="e" aria-hidden="true">💬</span><span>Comment</span></button>
+    </div>
+    <label class="field"><span id="ideaAsk">What would you love to have?</span><textarea id="ideaText" rows="4" maxlength="2000" autocomplete="off"></textarea></label>
+    <label class="check-row" id="ideaPicRow" hidden><input type="checkbox" id="ideaPic"><span>Add a picture of what’s on the screen</span></label>
+    <div class="confirm-row">
+      <button type="button" id="ideaNo">Not now</button>
+      <button type="button" id="ideaGo" class="primary" disabled>Send it</button>
+    </div>
   </div>
 </section>
 
@@ -532,6 +567,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 'use strict';
 const STANDALONE = true;
 const SITE_URL = 'https://daveyxjones.github.io/Sticker-World-Play/';
+const BUILD = '801d7ca';
 /* ---------- core: 2D math, the camera, and the world model ---------- */
 const TAU = Math.PI * 2;
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
@@ -679,7 +715,8 @@ function openingPath(c, shape, w, h, g = 0) { c.beginPath(); addOpening(c, shape
 /* ---------- the world: a book of pages, each page a scene that can hold doorways to more scenes ---------- */
 // doc = { v: 2, title, pages: [sceneId, ...], scenes: { id: { id, name, bg, w, h, items: [...] } }, photos: { id: { w, h, alpha } } }
 // item = { id, t: 'e' (emoji) | 'a' (drawn sticker) | 'ph' (photo) | 'p' (frame), x, y, size, rot, flip, tilt?, spin?, e?, a?, c?, p?, f?, s?, link? }
-// (and, on some: open, lit, fx; a present's wrapped, note, gid, from; an advent door's n and lock; wall, in a room)
+// (and, on some: open, lit, fx; a present's wrapped, note, gid, from; an advent door's n and lock; wall, in a room;
+// locked, held in place)
 // pages[0] is the cover. Every page has the same size, PAGE_H tall for a width of 1.
 const PAGE_H = 4 / 3;
 let doc = null;
@@ -788,7 +825,7 @@ function parseWorld(json) {
           const sp = wrapAngle(+it.spin);
           if (it.t === 'p' || !(Math.abs(sp) >= 1e-4)) delete it.spin; else it.spin = sp;
         }
-        if (it.open !== undefined && !(it.open === true && it.t === 'p')) delete it.open; // doors standing open
+        if (it.open !== undefined && !(it.open === true && (it.t === 'p' || (it.t === 'a' && ART[it.a].door)))) delete it.open; // doors standing open
         if (it.lit !== undefined && it.lit !== true) delete it.lit;                      // a lamp switched on
         if (it.fx !== undefined && !(it.t === 'e' && FINISHES[it.fx])) delete it.fx;   // one of Pip's shiny presents
         if (it.wrapped !== undefined && !(it.wrapped === true && it.f === 'gift')) delete it.wrapped; // a present not unwrapped yet,
@@ -797,6 +834,7 @@ function parseWorld(json) {
         for (const k of ['gid', 'from']) if (it[k] !== undefined && !(typeof it[k] === 'string' && /^[\w\-.~:@+]{1,120}$/.test(it[k]))) delete it[k]; // and where it came from
         if (it.n !== undefined && !(it.f === 'advent' && Number.isInteger(it.n) && it.n >= 1 && it.n <= 24)) delete it.n; // an advent door's day,
         if (it.lock !== undefined && !(it.f === 'advent' && Number.isInteger(it.lock) && it.lock > 2000 && it.lock < 3000)) delete it.lock; // and its year
+        if (it.locked !== undefined && it.locked !== true) delete it.locked;             // held in place (the lock knob)
         if (it.wall !== undefined && !((it.wall === 'l' || it.wall === 'r') && BACKDROPS[s.bg].room && !it.tilt)) delete it.wall; // stuck flat on a room's wall
       }
     }
@@ -2591,11 +2629,21 @@ function seigaihaTile(g, r, base, ink, lw) {
   }
 }
 // One repeat of the wallpaper's little pattern: s is a ninth of the wall's length.
+function motifSize(look, s) { return look.pattern === 'stripes' ? [s * 0.5, s] : [s * 0.6, s * 1.24]; }
 function motifTile(g, look, s) {
-  const tw = look.pattern === 'stripes' ? s * 0.5 : s * 0.6, th = look.pattern === 'stripes' ? s : s * 1.24;
+  const [tw, th] = motifSize(look, s);
   g.fillStyle = look.wall; g.fillRect(0, 0, tw, th);
   g.fillStyle = look.ink;
   if (look.pattern === 'stripes') { g.fillRect(s * 0.25, 0, s * 0.2, th); return [tw, th]; }
+  if (look.pattern === 'bubbles') { // rings, each with a glint
+    g.strokeStyle = look.ink; g.lineWidth = s * 0.025; g.beginPath();
+    for (const [mx, my, r] of [[0.15, 0.31, 0.1], [0.45, 0.93, 0.06]]) for (const dx of [-tw, 0, tw]) for (const dy of [-th, 0, th]) { const x = mx * s + dx, y = my * s + dy; g.moveTo(x + r * s, y); g.arc(x, y, r * s, 0, TAU); }
+    g.stroke();
+    g.strokeStyle = '#ffffff'; g.beginPath();
+    for (const [mx, my, r] of [[0.15, 0.31, 0.1], [0.45, 0.93, 0.06]]) for (const dx of [-tw, 0, tw]) for (const dy of [-th, 0, th]) { const x = mx * s + dx, y = my * s + dy; g.moveTo(x - r * s * 0.55 * Math.cos(0.5), y - r * s * 0.55 * Math.sin(0.5)); g.arc(x, y, r * s * 0.55, Math.PI + 0.5, Math.PI * 1.45); }
+    g.stroke();
+    return [tw, th];
+  }
   g.beginPath();
   for (const [mx, my] of [[0.15, 0.31], [0.45, 0.93]]) for (const dx of [-tw, 0, tw]) for (const dy of [-th, 0, th]) {
     const x = mx * s + dx, y = my * s + dy;
@@ -2616,13 +2664,20 @@ function motifTile(g, look, s) {
 function wallpaper(c, L, H, look, lod, scale) {
   const dado = H * 0.72, s = L / 9;
   if (lod > 40) {
-    const tw = look.pattern === 'stripes' ? s * 0.5 : s * 0.6, th = look.pattern === 'stripes' ? s : s * 1.24;
+    const [tw, th] = motifSize(look, s);
     tileFill(c, 'wp-' + look.name + ':' + s.toFixed(4), tw, th, scale, g => motifTile(g, look, s));
   } else c.fillStyle = look.wall;
   c.fillRect(0, 0, L, dado);
-  // panelling below a rail, then the skirting board
+  // panelling below a rail (or tiles, in a bathroom), then the skirting board
   c.fillStyle = look.dado; c.fillRect(0, dado, L, H - dado);
-  if (lod > 90) {
+  if (look.tiled && lod > 60) {
+    const ts = (H - dado) / 3;
+    c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = s * 0.025; c.beginPath();
+    for (let y = dado + ts; y < H; y += ts) { c.moveTo(0, y); c.lineTo(L, y); }
+    for (let x = ts; x < L; x += ts) { c.moveTo(x, dado); c.lineTo(x, H); }
+    c.stroke();
+    if (lod > 120) { c.fillStyle = 'rgba(255,255,255,0.3)'; for (let x = 0; x < L; x += ts) for (let y = dado; y < H - ts / 2; y += ts) c.fillRect(x + ts * 0.15, y + ts * 0.15, ts * 0.22, ts * 0.08); }
+  } else if (lod > 90) {
     c.strokeStyle = 'rgba(255,255,255,0.55)'; c.lineWidth = s * 0.03; c.beginPath();
     for (let x = s * 0.5; x < L - s * 0.3; x += s * 1.25) rr(c, x, dado + (H - dado) * 0.2, s * 0.9, (H - dado) * 0.5, s * 0.06);
     c.stroke();
@@ -2725,6 +2780,7 @@ const ROOM_LOOKS = {
   roomMint: { name: 'Mint room', swatch: '#d6efe4', page: '#d9efe6', wave: 'rgba(255,255,255,0.55)', wall: '#f1faf5', ink: '#d2ece0', dado: '#b4dfcb', pattern: 'stripes', floor: 'tiles', tiles: ['#fffaf1', '#f3bfac'], edge: '#ffffff' },
   roomSky: { name: 'Blue room', swatch: '#dbe6f6', page: '#dde8f7', wave: 'rgba(255,255,255,0.55)', wall: '#f4f8fe', ink: '#cfdff5', dado: '#bcd1f1', pattern: 'stars', floor: 'wood', wood: ['#dcab78', '#b98352'], edge: '#ffffff' },
   roomLemon: { name: 'Lemon room', swatch: '#f8ecc6', page: '#f8edca', wave: 'rgba(255,255,255,0.55)', wall: '#fffbef', ink: '#f8e2a4', dado: '#f5d98a', pattern: 'hearts', floor: 'wood', wood: ['#f0d29f', '#d6ac6c'], edge: '#ffffff' },
+  roomAqua: { name: 'Aqua room', swatch: '#d2eef0', page: '#d5eef0', wave: 'rgba(255,255,255,0.55)', wall: '#f3fbfb', ink: '#c9e8ec', dado: '#a9dce1', tiled: true, pattern: 'bubbles', floor: 'tiles', tiles: ['#ffffff', '#c3e6ea'], edge: '#ffffff' },
 };
 const ROOM_BGS = Object.keys(ROOM_LOOKS);
 for (const id of ROOM_BGS) {
@@ -2842,22 +2898,79 @@ function roomAdd(sc, it, whole) {
     else it.size = (it.t === 'ph' ? 0.16 : 0.11) * sc.w * g.k;
     it.rot = 0;
     const side = Math.random() < 0.5 ? 'l' : 'r';
-    if (hangs(it) || (def && def.onWall)) {
-      const s = g.D * rand(0.35, 0.65), [u, v] = roomPt(g, side === 'l' ? s : 0, side === 'l' ? 0 : s, g.H * rand(0.5, 0.62));
+    if (hangs(it) || (def && def.onWall)) { // (at about half the wall's height, or lower for a towel rail: `hangAt`)
+      const up = def && def.hangAt ? def.hangAt + rand(-0.03, 0.03) : rand(0.5, 0.62);
+      const s = g.D * rand(0.35, 0.65), [u, v] = roomPt(g, side === 'l' ? s : 0, side === 'l' ? 0 : s, g.H * up);
       it.x = u; it.y = v;
     } else if (def && def.floor) {
       [it.x, it.y] = roomPt(g, g.D * rand(0.45, 0.55), g.D * rand(0.45, 0.55));
     } else if (standsByWall(it)) { // a cabinet or a door, standing against a wall
       const s = g.D * rand(0.3, 0.7), [u, v] = roomPt(g, side === 'l' ? s : 0, side === 'l' ? 0 : s);
       it.x = u; it.y = v - stickerBottom(it) * itemScale(it);
-    } else {
-      const [u, v] = roomPt(g, g.D * rand(0.35, 0.65), g.D * rand(0.35, 0.65));
-      it.x = u; it.y = v - stickerBottom(it) * itemScale(it);
+    } else if (def && def.byWall && freeByWall(sc, it, def)) { // (freeByWall has put it there)
+    } else { // out in the room: furniture somewhere it doesn't bump into anything, if there's such a place
+      const taken = isoArt(it) ? sc.items.filter(o => o !== it).map(o => footprint(g, o)).filter(Boolean) : [];
+      for (let i = 0; i < 30; i++) {
+        const [u, v] = roomPt(g, g.D * rand(0.3, 0.7), g.D * rand(0.3, 0.7));
+        it.x = u; it.y = v - stickerBottom(it) * itemScale(it);
+        const r = taken.length && footprint(g, it);
+        if (!r || !taken.some(q => r[0] < q[2] && q[0] < r[2] && r[1] < q[3] && q[1] < r[3])) break;
+      }
     }
     clampItem(it);
   }
   roomPlace(sc, it, cam.z, true);
   if (whole) wallSnap(sc, it);
+}
+
+// An open door (see `swing`) of a piece by wall `side`, t along it, s room units to each of its own: the stretch of the
+// view it covers, left to right (as y - x, in room units), and how far forward it stands (as x + y).
+function doorBand(def, s, side, t) {
+  const b = def.swing[0] * s, W = def.swing[1] * s;
+  return side === 'l' ? { lo: b - t, hi: b + W - t, near: t + b } : { lo: t - b - W, hi: t - b, near: t + b };
+}
+// Whether a footprint [x0, y0, x1, y1] is behind that door, where the door hides it.
+function behindDoor(q, band, gap) { return q[1] - q[2] < band.hi - gap && band.lo + gap < q[3] - q[0] && q[0] + q[1] < band.near; }
+// Where a piece of furniture stands on the floor, as [x0, y0, x1, y1] in room units (null for what doesn't take room up:
+// rugs, things on a wall). A cupboard or door flat against a wall takes up a strip of floor along it.
+function footprint(g, o) {
+  const d = isoArt(o) && ART[o.a];
+  if (d && !d.floor && !d.onWall) {
+    const s = d.geo.k * o.size, [lx, ly] = d.geo.P(0, 0), [bx, by] = floorAt(g, o.x + (o.flip ? -lx : lx) * o.size, o.y + ly * o.size);
+    const A = d.dims[0] * s, B = d.dims[1] * s; // flipped, it runs along the other wall
+    return o.flip ? [bx, by, bx + B, by + A] : [bx, by, bx + A, by + B];
+  }
+  if (o.t === 'p' && o.wall && standsByWall(o)) {
+    const [x, y] = floorAt(g, ...feetOf(o)), hw = (0.5 + frameOf(o).border) * o.size, t = 0.05 * g.D;
+    return o.wall === 'l' ? [x - hw, 0, x + hw, t] : [0, y - hw, t, y + hw];
+  }
+  return null;
+}
+// A new piece of furniture that goes against a wall (`byWall`: a counter, the fridge, a bookcase) goes to the first
+// free place along the left wall from the corner, then along the right one, so units added one after another line up
+// in a row. A piece whose door stands open (`swing`: its depth and its door's width, the fridge) hides whatever is
+// behind its door as you look at the room, so the first try keeps doors from hiding anything, new or already there; if
+// there's nowhere like that, the second doesn't mind. Returns false if there's no room for it anywhere along the walls.
+function freeByWall(sc, it, def) {
+  const g = roomGeo(sc.w, sc.h), s = def.geo.k * it.size, A = def.dims[0] * s, B = def.dims[1] * s, [lx, ly] = def.geo.P(0, 0), gap = 0.004 * g.D;
+  const others = sc.items.filter(o => o !== it), taken = others.map(o => footprint(g, o)).filter(Boolean);
+  const hit = r => taken.some(q => r[0] < q[2] - gap && q[0] < r[2] - gap && r[1] < q[3] - gap && q[1] < r[3] - gap);
+  const doors = others.filter(o => isoArt(o) && ART[o.a].swing).map(o => { const q = footprint(g, o), d = ART[o.a]; return doorBand(d, d.geo.k * o.size, o.flip ? 'r' : 'l', o.flip ? q[1] : q[0]); });
+  const spots = side => { // the corner, just past each thing along that wall (so a row packs up tight), then every little step
+    const out = [0, ...taken.map(q => (side === 'l' ? q[2] : q[3]))];
+    for (let t = 0; t <= g.D; t += 0.02 * g.D) out.push(t);
+    return [...new Set(out)].filter(t => t >= 0 && t + A <= g.D + 1e-9).sort((p, q) => p - q);
+  };
+  for (const strict of [true, false]) for (const side of ['l', 'r']) for (const t of spots(side)) {
+    const r = side === 'l' ? [t, 0, t + A, B] : [0, t, B, t + A];
+    if (hit(r)) continue;
+    if (strict && doors.some(band => behindDoor(r, band, gap))) continue;
+    if (strict && def.swing) { const band = doorBand(def, s, side, t); if (taken.some(q => behindDoor(q, band, gap))) continue; }
+    const [u, v] = roomPt(g, side === 'l' ? t : 0, side === 'l' ? 0 : t);
+    it.flip = side === 'r'; it.x = u - (it.flip ? -lx : lx) * it.size; it.y = v - ly * it.size;
+    return true;
+  }
+  return false;
 }
 
 /* ----- popping up ----- */
@@ -2909,7 +3022,10 @@ function roomItem(sc, spec, x, y, size, o = {}) {
     [it.x, it.y] = roomPt(g, o.wall === 'l' ? x * g.D : 0, o.wall === 'l' ? 0 : x * g.D, y * g.H);
   } else if (o.mid) [it.x, it.y] = roomPt(g, x * g.D, y * g.D); // its middle at that point of the floor
   else if (o.back) { const [u, v] = roomPt(g, x * g.D, y * g.D), [lx, ly] = ART[it.a].geo.P(0, 0); it.x = u - (it.flip ? -lx : lx) * it.size; it.y = v - ly * it.size; } // furniture, by the corner of it nearest the room's corner
-  else if (o.top) { const f = surfacesIn(sc).find(s => s.owner === o.top); it.x = f.x0 + (f.x1 - f.x0) * x; it.y = lineY(f, it.x) - stickerBottom(it) * itemScale(it); } // x along a table top
+  else if (o.top) { // x along a table top, or along one of a cupboard's shelves (o.shelf, counted from the bottom)
+    const f = surfacesIn(sc).filter(s => s.owner === o.top)[o.shelf || 0];
+    it.x = f.x0 + (f.x1 - f.x0) * x; it.y = lineY(f, it.x) - stickerBottom(it) * itemScale(it); fitShelf(it, f);
+  }
   else { const [u, v] = roomPt(g, x * g.D, y * g.D); it.x = u; it.y = v - stickerBottom(it) * itemScale(it); } // its feet there
   sc.items.push(it);
   roomPlace(sc, it, 400, !!o.wall);
@@ -2928,17 +3044,61 @@ function roomSnap(sc, it) {
 }
 // What a room comes with: a bedroom, a sitting room or a playroom to start you off, or ('full') a bedroom furnished
 // like the cover of a room-set book. A room that isn't a page (one in a room box) is named after what it is.
-const ROOM_KINDS = { bedroom: 'Bedroom', lounge: 'Sitting room', playroom: 'Playroom' };
+const ROOM_KINDS = { bedroom: 'Bedroom', lounge: 'Sitting room', playroom: 'Playroom', kitchen: 'Kitchen', shop: 'Little shop', bathroom: 'Bathroom' };
 function stockRoom(sc, kind = pickN(Object.keys(ROOM_KINDS), 1)[0]) {
   const full = kind === 'full', pick = n => (full ? 0 : Math.floor(Math.random() * n)), A = a => ({ t: 'a', a }), E = e => ({ t: 'e', e });
   if (!doc.pages.includes(sc.id) && ROOM_KINDS[kind]) sc.name = ROOM_KINDS[kind];
+  const S = a => ART[a].size, fill = (o, shelf, list, sz) => list.forEach((e, i) => roomItem(sc, E(e), (i + 0.5) / list.length, 0, sz, { top: o, shelf }));
+  if (kind === 'kitchen') { // fridge in the corner (its door open along the other wall), then a row of units, shelves and a table
+    const fridge = roomItem(sc, A('isoFridge'), 0, 0, S('isoFridge'), { back: true, c: pick(5) }), unit = pick(6);
+    const counter = roomItem(sc, A('isoCounter'), 0.25, 0, S('isoCounter'), { back: true, c: unit });
+    roomItem(sc, A('isoSink'), 0.49, 0, S('isoSink'), { back: true, c: unit });
+    const stove = roomItem(sc, A('isoStove'), 0.73, 0, S('isoStove'), { back: true, c: pick(5) });
+    const cup = roomItem(sc, A('isoWallCupboard'), 0.37, 0.58, S('isoWallCupboard'), { wall: 'l', c: unit });
+    const pantry = roomItem(sc, A('isoPantry'), 0, 0.5, S('isoPantry'), { back: true, flip: true, c: pick(6) });
+    roomItem(sc, { t: 'p', f: 'archWindow' }, 0.84, 0.62, 0.15, { wall: 'r', c: pick(6) });
+    const table = roomItem(sc, A('isoTable'), 0.62, 0.62, S('isoTable'), { mid: true, c: pick(4) });
+    roomItem(sc, A('isoChair'), 0.66, 0.4, S('isoChair'), { mid: true, flip: true, c: pick(4) });
+    fill(fridge, 0, ['🥕', '🥦'], 0.05); fill(fridge, 1, ['🧀', '🥚'], 0.045); fill(fridge, 2, ['🥛', '🧃'], 0.05);
+    fill(pantry, 0, ['🧽', '🧴'], 0.045); fill(pantry, 1, ['🥫', '🥫', '🍯'], 0.04); fill(pantry, 2, ['🫙', '🧂'], 0.04); fill(pantry, 3, ['🍪', '🍞'], 0.045);
+    fill(cup, 0, ['☕', '🍵'], 0.035); fill(cup, 1, ['🥣', '🍽️'], 0.035);
+    roomItem(sc, E('🫖'), 0.5, 0, 0.05, { top: counter }); roomItem(sc, E('🍳'), 0.35, 0, 0.05, { top: stove });
+    roomItem(sc, E('🍎'), 0.35, 0, 0.04, { top: table }); roomItem(sc, E('🍌'), 0.62, 0, 0.045, { top: table });
+    return kind;
+  }
+  if (kind === 'shop') { // shelves of things to buy, a counter with the till, and a basket by the door
+    const shelves = [roomItem(sc, A('isoShopShelf'), 0.2, 0, S('isoShopShelf'), { back: true, c: pick(5) }), roomItem(sc, A('isoShopShelf'), 0, 0.02, S('isoShopShelf'), { back: true, flip: true, c: pick(5) })];
+    const stock = [[['🧸', '🦖', '🤖', '🚂'], ['🍭', '🍬', '🍫', '🍩'], ['🎈', '⚽', '🪀', '🧩']], [['🍎', '🍌', '🍋', '🍓'], ['🥫', '🧃', '🍯', '🫙'], ['🧴', '🧼', '🧻', '🧽']]];
+    shelves.forEach((o, i) => stock[i].forEach((list, k) => fill(o, k, list, 0.04)));
+    const counter = roomItem(sc, A('isoCounter'), 0.55, 0.62, S('isoCounter'), { mid: true, flip: true, c: pick(6) });
+    roomItem(sc, A('register'), 0.4, 0, 0.045, { top: counter, c: pick(5) });
+    roomItem(sc, { t: 'p', f: 'display' }, 0.84, 0, 0.16, { c: pick(5) }); // a cake case, standing against the wall
+    roomItem(sc, E('🛒'), 0.3, 0.72, 0.08); roomItem(sc, E('🧺'), 0.84, 0.4, 0.06);
+    return kind;
+  }
+  if (kind === 'bathroom') { // the bath in the corner with a duck in it, the basin under a mirror, the toilet by the window
+    const bath = roomItem(sc, A('isoBath'), 0, 0, S('isoBath'), { back: true, c: pick(6) });
+    const basin = roomItem(sc, A('isoBasin'), 0.52, 0, S('isoBasin'), { back: true, c: pick(6) });
+    roomItem(sc, { t: 'p', f: 'mirror' }, 0.62, 0.55, 0.085, { wall: 'l' });
+    const loo = roomItem(sc, A('isoToilet'), 0, 0.32, S('isoToilet'), { back: true, flip: true, c: pick(6) });
+    roomItem(sc, { t: 'p', f: 'archWindow' }, 0.39, 0.6, 0.14, { wall: 'r', c: pick(6) });
+    roomItem(sc, A('isoTowelRail'), 0.68, 0.34, S('isoTowelRail'), { wall: 'r', c: pick(6) });
+    roomItem(sc, A('isoBathMat'), 0.28, 0.33, S('isoBathMat'), { mid: true, c: pick(5) });
+    roomItem(sc, E('🦆'), 0.55, 0, 0.05, { top: bath }); roomItem(sc, E('🧴'), 0.12, 0, 0.035, { top: basin }); roomItem(sc, E('🧼'), 0.88, 0, 0.035, { top: basin });
+    roomItem(sc, E('🧻'), 0.5, 0, 0.035, { top: loo });
+    roomItem(sc, E('🧺'), 0.86, 0.12, 0.065); roomItem(sc, E('🪴'), 0.1, 0.86, 0.08);
+    return kind;
+  }
   roomItem(sc, A('isoRug'), 0.56, 0.52, 0.6, { mid: true, c: pick(5) });
   if (kind === 'lounge') {
     roomItem(sc, { t: 'p', f: 'archWindow' }, 0.49, 0.5, 0.17, { wall: 'l', c: pick(6) });
     const sofa = roomItem(sc, A('isoSofa'), 0.28, 0, 0.3, { back: true, c: pick(6) });
     roomItem(sc, A('isoBookcase'), 0, 0.12, 0.25, { back: true, flip: true, c: pick(6) });
     roomItem(sc, { t: 'p', f: 'frame' }, 0.75, 0.62, 0.1, { wall: 'r' });
-    roomItem(sc, A('floorLamp'), 0.12, 0.74, 0.05, { c: pick(6), lit: true });
+    roomItem(sc, A('floorLamp'), 0.12, 0.8, 0.05, { c: pick(6), lit: true });
+    roomItem(sc, A('isoArmchair'), 0, 0.5, S('isoArmchair'), { back: true, flip: true, c: pick(6) });
+    const table = roomItem(sc, A('isoCoffeeTable'), 0.5, 0.48, S('isoCoffeeTable'), { mid: true, c: pick(4) });
+    roomItem(sc, E('☕'), 0.35, 0, 0.035, { top: table }); roomItem(sc, A('books'), 0.7, 0, 0.04, { top: table });
     roomItem(sc, E('🐈'), 0.3, 0, 0.065, { top: sofa });
     roomItem(sc, E('🪴'), 0.9, 0.1, 0.09);
     return kind;
@@ -3038,7 +3198,11 @@ function stockHouse(sc) {
 // Each piece is a box `a` long (x, along the wall behind it), `b` deep (y, out from that wall) and `h` tall (z), drawn
 // so the box just fits a sticker 1 wide; isoGeo works out how tall the sticker is and where each point of the box lands
 // in it. As drawn a piece backs onto the left wall; flipped, onto the right one. `foot` is the middle of its footprint
-// (what decides which things it stands in front of), `tops` are level lines along its tops, for things to stand on.
+// (what decides which things it stands in front of), `tops` are level lines along its tops, for things to stand on: a
+// line on a shelf inside a cupboard also says how tall a thing fits under the shelf above (`[p, q, gap]`), and anything
+// bigger put there shrinks to fit. Without a `size`, a piece is ISO_UNIT of the page wide for each unit of its box.
+// `byWall` pieces (most furniture) are put against a wall when they're added; tables, chairs and rugs go in the middle.
+const ISO_UNIT = 0.17;
 function isoGeo(a, b, h, pad = 0.035) {
   const k = (1 - 2 * pad) / ((a + b) * ISO_C), ar = ((a + b) * ISO_S + h) * k + 2 * pad;
   const ox = -0.5 + pad + a * ISO_C * k, oy = -ar / 2 + pad + h * k;
@@ -3046,9 +3210,11 @@ function isoGeo(a, b, h, pad = 0.035) {
   return { a, b, h, k, ar, P, foot: P(a / 2, b / 2)[1] };
 }
 function isoPiece(o) {
-  const G = isoGeo(...o.dims);
-  const surfaces = (o.tops || []).map(([p, q]) => { const m = G.P(...p), n = G.P(...q); return m[0] <= n[0] ? [m[0], n[0], m[1], n[1]] : [n[0], m[0], n[1], m[1]]; });
-  return { ...o, iso: true, ar: G.ar, foot: G.foot, geo: G, surfaces, draw(c, col, ar, lit) { o.paint(c, G, col, lit); } };
+  const G = isoGeo(...o.dims), size = o.size || ISO_UNIT * (o.dims[0] + o.dims[1]) * ISO_C / 0.93;
+  const surfaces = (o.tops || []).map(([p, q, gap]) => { const m = G.P(...p), n = G.P(...q), g = gap ? gap * G.k : 0; return m[0] <= n[0] ? [m[0], n[0], m[1], n[1], g] : [n[0], m[0], n[1], m[1], g]; });
+  const def = { ...o, size, iso: true, ar: G.ar, foot: G.foot, geo: G, surfaces, draw(c, col, ar, lit, u) { o.paint(c, G, col, lit, u); } };
+  if (o.paintDoor) def.drawDoor = (c, col, u) => o.paintDoor(c, G, col, u);
+  return def;
 }
 const ISO_LINE = 'rgba(105,66,50,0.5)';
 function ipoly(c, pts) { c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); }
@@ -3099,7 +3265,7 @@ function bookRow(c, R, u0, u1, v, gap, lw) {
 }
 
 Object.assign(ART, {
-  isoBed: isoPiece({ name: 'Bed', dims: [0.95, 1.45, 0.95], size: 0.4, tints: BLANKETS,
+  isoBed: isoPiece({ name: 'Bed', byWall: true, dims: [0.95, 1.45, 0.95], size: 0.4, tints: BLANKETS,
     tops: [[[0.475, 0.55, 0.47], [0.475, 1.35, 0.47]]],
     paint(c, G, col) {
       const a = 0.95, b = 1.45, h = 0.95, frame = '#fdf5ea', P = G.P;
@@ -3128,7 +3294,7 @@ Object.assign(ART, {
       onSide(c, G, a + 0.015, 0.6, () => { c.fillStyle = 'rgba(255,255,255,0.4)'; for (let u = 0.08; u < b - 0.55; u += 0.12) { c.beginPath(); c.arc(u, -0.25, 0.018, 0, TAU); c.fill(); } });
       ibox(c, G, [-0.015, 0.6, 0.45], [a + 0.015, 0.76, 0.49], shade(col, 0.5), { side: shade(col, 0.3), front: shade(col, 0.4), top: shade(col, 0.62) });
     } }),
-  isoBookcase: isoPiece({ name: 'Bookcase', dims: [0.95, 0.38, 1.85], size: 0.25, tints: FURN,
+  isoBookcase: isoPiece({ name: 'Bookcase', byWall: true, dims: [0.95, 0.38, 1.85], size: 0.25, tints: FURN,
     tops: [[[0.08, 0.19, 1.85], [0.87, 0.19, 1.85]]],
     paint(c, G, col) {
       const a = 0.95, b = 0.38, h = 1.85, R = rng(7);
@@ -3156,7 +3322,7 @@ Object.assign(ART, {
         }
       });
     } }),
-  isoNightstand: isoPiece({ name: 'Bedside table', dims: [0.52, 0.48, 0.66], size: 0.15, tints: FURN,
+  isoNightstand: isoPiece({ name: 'Bedside table', byWall: true, dims: [0.52, 0.48, 0.66], size: 0.15, tints: FURN,
     tops: [[[0.07, 0.24, 0.66], [0.45, 0.24, 0.66]]],
     paint(c, G, col) {
       const a = 0.52, b = 0.48, h = 0.66;
@@ -3172,7 +3338,7 @@ Object.assign(ART, {
         c.save(); c.translate(-0.07, -0.07); rrFill(c, '#a9c8ec', 0.09, -0.21, 0.24, 0.06, 0.01); rrFill(c, '#f4a7b9', 0.11, -0.26, 0.2, 0.05, 0.01); c.restore();
       });
     } }),
-  isoDresser: isoPiece({ name: 'Chest of drawers', dims: [1.05, 0.48, 0.86], size: 0.23, tints: FURN,
+  isoDresser: isoPiece({ name: 'Chest of drawers', byWall: true, dims: [1.05, 0.48, 0.86], size: 0.23, tints: FURN,
     tops: [[[0.08, 0.24, 0.86], [0.97, 0.24, 0.86]]],
     paint(c, G, col) {
       const a = 1.05, b = 0.48, h = 0.86;
@@ -3193,7 +3359,7 @@ Object.assign(ART, {
         }
       });
     } }),
-  isoSofa: isoPiece({ name: 'Sofa', dims: [1.3, 0.62, 0.68], size: 0.28, tints: SOFAS,
+  isoSofa: isoPiece({ name: 'Sofa', byWall: true, dims: [1.3, 0.62, 0.68], size: 0.28, tints: SOFAS,
     tops: [[[0.22, 0.42, 0.37], [1.08, 0.42, 0.37]]],
     paint(c, G, col) {
       const a = 1.3, b = 0.62, lt = shade(col, 0.12);
@@ -3240,6 +3406,364 @@ Object.assign(ART, {
         c.beginPath(); c.moveTo(0, -0.28); c.lineTo(b - 0.05, -0.28); c.quadraticCurveTo(b * 0.35, -0.22, 0, -0.04); c.closePath(); c.fill(); c.stroke();
       });
       ibox(c, G, [0, 0, 0.28], [a, b, 0.34], col);
+    } }),
+});
+
+/* ----- for a kitchen, a sitting room and a little shop: furniture with shelves to fill ----- */
+// Open shelves are cubbies in a front; the line things stand on runs along the middle of each cubby's floor.
+const KITCHEN_H = 0.9; // counters, the sink and the stove are the same height and depth, so they line up in a row
+const FRIDGES = ['#f4f1ea', '#b9e2d3', '#f5b8b0', '#a9cdea', '#f6e3a1'];
+const WASHERS = ['#f7f8fa', '#bfe3d2', '#f6c6d0', '#bcd2f0', '#f6e3a1'];
+function shelfLine(a, y, z, gap, inset = 0.1) { return [[inset, y, z], [a - inset, y, z], gap]; }
+// A shelf of glass or wood seen through an opening: its front edge at height z (front units, so v = -z), going back d.
+function shelfIn(c, u0, u1, z, d, col, lw) {
+  ipoly(c, [[u0, -z], [u1, -z], [u1 - d, -z - d], [u0 - d, -z - d]]); c.fillStyle = col; c.fill();
+  c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.beginPath(); c.moveTo(u0, -z); c.lineTo(u1, -z); c.stroke();
+}
+// A cupboard door on a front, with its knob near the edge it opens from.
+function frontDoor(c, u0, v0, u1, v1, col, lw, knobU) {
+  rrFill(c, shade(col, 0.1), u0, v0, u1 - u0, v1 - v0, 0.025);
+  c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.beginPath(); rr(c, u0, v0, u1 - u0, v1 - v0, 0.025); c.stroke();
+  c.strokeStyle = shade(col, -0.18); c.beginPath(); rr(c, u0 + 0.04, v0 + 0.04, u1 - u0 - 0.08, v1 - v0 - 0.08, 0.02); c.stroke();
+  if (knobU != null) knob(c, knobU, v0 + 0.07, 0.024, '#e2b85c');
+}
+// A kitchen base unit: a plinth set back at the floor, the cupboard, and a worktop on top (unless it's the stove's).
+function kitchenBody(c, G, a, b, col, worktop = true) {
+  const h = KITCHEN_H;
+  ibox(c, G, [0.04, 0, 0], [a - 0.03, b - 0.08, 0.08], shade(col, -0.45), { line: false });
+  ibox(c, G, [0, 0, 0.08], [a, b - 0.03, h - 0.05], col);
+  if (worktop) ibox(c, G, [-0.015, 0, h - 0.05], [a + 0.015, b + 0.015, h], '#f6f3ee', { side: '#dad4ca', front: '#e9e4db', top: '#fdfbf8' });
+}
+function counterFront(c, G, a, b, col, doors) {
+  const h = KITCHEN_H, lw = 0.006 / G.k;
+  onFront(c, G, a, b - 0.03, () => {
+    frontDoor(c, 0.04, -(h - 0.08), a - 0.04, -(h - 0.24), col, lw, null); knob(c, a / 2, -(h - 0.16), 0.024, '#e2b85c'); // a drawer
+    if (doors === 2) { frontDoor(c, 0.04, -(h - 0.28), a / 2 - 0.01, -0.12, col, lw, a / 2 - 0.07); frontDoor(c, a / 2 + 0.01, -(h - 0.28), a - 0.04, -0.12, col, lw, a / 2 + 0.07); }
+    else frontDoor(c, 0.04, -(h - 0.28), a - 0.04, -0.12, col, lw, a - 0.1);
+  });
+}
+
+// The fridge's door, u of the way open (0 shut over the front, 1 swung out square to it). It's a slab turning about
+// its hinge; you see its outside until it's side-on, then its inside, with racks of bottles and jars, plus its edge
+// and top. It's drawn last, and again over whatever is inside the fridge (see isoDoor), since it's in front of them.
+function fridgeDoor(c, G, col, u) {
+  const b = 0.62, W = 0.665, th = 0.045, hx = 0.045, z0 = 0.06, z1 = 1.332, P = G.P, lw = 0.006 / G.k;
+  const q = clamp(u, 0, 1) * Math.PI / 2, cs = Math.cos(q), sn = Math.sin(q);
+  const at = (t, s) => [hx + cs * t - sn * s, b + sn * t + cs * s]; // t along the door from the hinge, s out through it
+  const face = ([x0, y0], [x1, y1], fn) => { const ex = x1 - x0, ey = y1 - y0, l = Math.hypot(ex, ey) || 1; isoFace(c, G, P(x0, y0), (ey - ex) / l * ISO_C, (ex + ey) / l * ISO_S, fn); };
+  const slab = (p, q2) => [P(...p, z0), P(...q2, z0), P(...q2, z1), P(...p, z1)];
+  c.lineJoin = 'round';
+  ipoly(c, slab(at(W, 0), at(W, th))); c.fillStyle = shade(col, -0.14 * cs); c.fill(); // its far edge
+  ipoly(c, [P(...at(0, 0), z1), P(...at(W, 0), z1), P(...at(W, th), z1), P(...at(0, th), z1)]); c.fillStyle = shade(col, 0.12); c.fill(); // its top
+  if (cs >= sn) { // the outside: a panel with a handle by its free edge, and magnets
+    face(at(W, th), at(0, th), () => {
+      rrFill(c, shade(col, 0.07 + 0.08 * sn), 0, -z1, W, z1 - z0, 0.04);
+      c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.beginPath(); rr(c, 0, -z1, W, z1 - z0, 0.04); c.stroke();
+      rrFill(c, '#c9d1d8', 0.035, -(z1 - 0.06), 0.03, 0.3, 0.015);
+      c.fillStyle = '#ff8fa3'; c.beginPath(); heartPath(c, 0.42, -1.05, 0.11); c.fill();
+      c.fillStyle = '#ffd45c'; c.beginPath(); sparkle(c, 0.25, -0.9, 0.07); c.fill();
+      rrFill(c, '#ffffff', 0.3, -0.78, 0.2, 0.24, 0.01); // a little drawing, held up by a magnet
+      c.strokeStyle = '#8fd0ef'; c.lineWidth = 0.012; c.beginPath(); c.moveTo(0.33, -0.6); c.lineTo(0.38, -0.66); c.lineTo(0.43, -0.61); c.lineTo(0.47, -0.67); c.stroke();
+      c.fillStyle = '#ffb347'; c.beginPath(); c.arc(0.44, -0.72, 0.022, 0, TAU); c.fill();
+      c.fillStyle = '#7cc576'; c.beginPath(); c.arc(0.4, -0.78, 0.022, 0, TAU); c.fill();
+    });
+  } else { // the inside: racks of bottles and jars
+    face(at(0, 0), at(W, 0), () => {
+      rrFill(c, shade('#f2f5f8', -0.12 * cs), 0, -z1, W, z1 - z0, 0.02);
+      c.strokeStyle = 'rgba(160,175,185,0.9)'; c.lineWidth = 0.02; c.beginPath(); rr(c, 0.03, -(z1 - 0.03), W - 0.06, z1 - z0 - 0.07, 0.03); c.stroke();
+      const things = [['#ffffff', 0.24, 0.07], ['#f5a742', 0.2, 0.06], ['#e2463c', 0.15, 0.05], ['#8fd0ef', 0.22, 0.06], ['#ffe9a8', 0.13, 0.07], ['#7cc576', 0.18, 0.05]];
+      for (let r = 0; r < 3; r++) {
+        const z = 0.2 + r * 0.38;
+        for (let k = 0; k < 2; k++) { const [tc, tt, tw] = things[r * 2 + k], v = 0.16 + k * 0.28; rrFill(c, tc, v, -(z + tt), tw * 2, tt, 0.02); c.strokeStyle = ISO_LINE; c.lineWidth = 0.004; c.beginPath(); rr(c, v, -(z + tt), tw * 2, tt, 0.02); c.stroke(); }
+        rrFill(c, 'rgba(170,215,235,0.8)', 0.06, -(z + 0.07), W - 0.12, 0.08, 0.015);
+      }
+    });
+  }
+  c.strokeStyle = ISO_LINE; c.lineWidth = 0.008;
+  const near = cs >= sn ? th : 0; // the face you see
+  ipoly(c, [P(...at(0, near), z0), P(...at(W, near), z0), P(...at(W, th - near), z0), P(...at(W, th - near), z1), P(...at(0, th - near), z1), P(...at(0, near), z1)]);
+  c.stroke();
+  c.beginPath(); c.moveTo(...P(...at(W, near), z0)); c.lineTo(...P(...at(W, near), z1)); c.lineTo(...P(...at(0, near), z1)); c.stroke();
+}
+
+Object.assign(ART, {
+  isoCounter: isoPiece({ name: 'Kitchen counter', byWall: true, dims: [0.75, 0.6, KITCHEN_H], tints: KITCHEN,
+    tops: [shelfLine(0.75, 0.3, KITCHEN_H, 0, 0.06)],
+    paint(c, G, col) { kitchenBody(c, G, 0.75, 0.6, col); counterFront(c, G, 0.75, 0.6, col, 2); } }),
+  isoSink: isoPiece({ name: 'Sink', byWall: true, dims: [0.75, 0.6, KITCHEN_H + 0.3], tints: KITCHEN,
+    tops: [shelfLine(0.75, 0.3, KITCHEN_H, 0, 0.06)],
+    paint(c, G, col) {
+      const a = 0.75, b = 0.6, h = KITCHEN_H, P = G.P;
+      kitchenBody(c, G, a, b, col); counterFront(c, G, a, b, col, 2);
+      onTop(c, G, h, () => { // the basin, sunk into the worktop
+        rrFill(c, '#b9c4cd', 0.15, 0.16, a - 0.3, b - 0.26, 0.06);
+        rrFill(c, '#d7dee4', 0.17, 0.18, a - 0.34, b - 0.3, 0.05);
+        c.fillStyle = '#9aa6b1'; c.beginPath(); c.arc(a / 2, 0.16 + (b - 0.26) / 2, 0.025, 0, TAU); c.fill();
+      });
+      // the tap: up from the back of the worktop and over the basin
+      c.strokeStyle = lgrad(c, ...P(a / 2, 0.06, h), ...P(a / 2, 0.2, h + 0.28), [[0, '#9aa4ae'], [0.5, '#f3f6f8'], [1, '#aeb7bf']]); c.lineWidth = 0.03 * G.k; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(...P(a / 2, 0.06, h)); c.lineTo(...P(a / 2, 0.06, h + 0.24)); c.quadraticCurveTo(...P(a / 2, 0.06, h + 0.3), ...P(a / 2, 0.16, h + 0.27)); c.lineTo(...P(a / 2, 0.24, h + 0.2)); c.stroke(); c.lineCap = 'butt';
+      for (const x of [a / 2 - 0.11, a / 2 + 0.11]) { c.fillStyle = '#e4e9ee'; c.beginPath(); c.ellipse(...P(x, 0.07, h + 0.025), 0.022 * G.k * 1.4, 0.018 * G.k, 0, 0, TAU); c.fill(); }
+    } }),
+  isoStove: isoPiece({ name: 'Stove', byWall: true, dims: [0.75, 0.6, KITCHEN_H], tints: ['#f4f1ea', '#e46b6b', '#9cc5b4', '#5d6b7a', '#f0d58a'], lights: true,
+    tops: [shelfLine(0.75, 0.3, KITCHEN_H, 0, 0.08)],
+    paint(c, G, col, lit) {
+      const a = 0.75, b = 0.6, h = KITCHEN_H, lw = 0.006 / G.k;
+      kitchenBody(c, G, a, b, col, false);
+      ibox(c, G, [-0.01, 0, h - 0.05], [a + 0.01, b, h], '#3b3f45', { side: '#2c2f34', front: '#34383e', top: '#43484f' });
+      onTop(c, G, h, () => { // four burners, blue when it's on
+        for (const [x, y, r] of [[0.21, 0.17, 0.09], [0.55, 0.17, 0.075], [0.21, 0.43, 0.075], [0.55, 0.43, 0.09]]) {
+          c.fillStyle = '#25282c'; c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill();
+          c.strokeStyle = lit ? '#7fb2ff' : '#5d636b'; c.lineWidth = lit ? 0.026 : 0.016; c.beginPath(); c.arc(x, y, r * 0.62, 0, TAU); c.stroke();
+          if (lit) { c.strokeStyle = 'rgba(255,190,110,0.85)'; c.lineWidth = 0.01; c.beginPath(); c.arc(x, y, r * 0.8, 0, TAU); c.stroke(); }
+        }
+      });
+      onFront(c, G, a, b - 0.03, () => {
+        rrFill(c, shade(col, -0.12), 0.03, -(h - 0.07), a - 0.06, 0.13, 0.02); // the knobs
+        for (let i = 0; i < 4; i++) knob(c, 0.14 + i * (a - 0.28) / 3, -(h - 0.135), 0.03, '#f6f6f6');
+        frontDoor(c, 0.05, -(h - 0.25), a - 0.05, -0.12, col, lw, null);
+        rrFill(c, '#c4cad0', 0.15, -(h - 0.3), a - 0.3, 0.035, 0.015); // the handle
+        c.fillStyle = vgrad(c, -(h - 0.4), -0.2, lit ? [[0, '#5a3218'], [1, '#e8892f']] : [[0, '#2f2724'], [1, '#4a362c']]); c.beginPath(); rr(c, 0.13, -(h - 0.4), a - 0.26, h - 0.62, 0.03); c.fill();
+        c.fillStyle = 'rgba(255,255,255,0.14)'; c.beginPath(); c.moveTo(0.15, -(h - 0.42)); c.lineTo(0.3, -(h - 0.42)); c.lineTo(0.17, -0.24); c.lineTo(0.15, -0.24); c.closePath(); c.fill();
+      });
+    } }),
+  // The fridge has a door that opens and shuts on a tap (`door`, see isoDoor), hinged at the end nearest the room's
+  // corner: shut, the food inside is hidden; open, it stands swung wide so the shelves can be filled. Three places
+  // inside (the bottom one the vegetable drawer), and the freezer shut on top.
+  isoFridge: isoPiece({ name: 'Fridge', byWall: true, door: 'fridge', swing: [0.62, 0.68], dims: [0.72, 0.62 + 0.68, 1.85], tints: FRIDGES,
+    doorway: { y: 0.62, x: [0, 0.72], z: [0.06, 1.34] },
+    tops: [shelfLine(0.72, 0.44, 0.12, 0.34, 0.12), shelfLine(0.72, 0.44, 0.52, 0.34, 0.12), shelfLine(0.72, 0.44, 0.92, 0.36, 0.12), shelfLine(0.72, 0.31, 1.85, 0, 0.08)],
+    paint(c, G, col, lit, u = 1) {
+      const a = 0.72, b = 0.62, h = 1.85, top = 1.34, lw = 0.006 / G.k, inside = '#eef5fa', d = 0.36;
+      ibox(c, G, [0.04, 0.04, 0], [a - 0.04, b - 0.05, 0.05], '#3b3f45', { line: false });
+      ibox(c, G, [0, 0, 0.05], [a, b, h], col, { top: shade(col, 0.16) });
+      onFront(c, G, a, b, () => {
+        // the freezer, shut
+        rrFill(c, shade(col, 0.07), 0.025, -(h - 0.03), a - 0.05, h - top - 0.06, 0.04);
+        c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.beginPath(); rr(c, 0.025, -(h - 0.03), a - 0.05, h - top - 0.06, 0.04); c.stroke();
+        rrFill(c, '#c9d1d8', 0.06, -(top + 0.36), 0.03, 0.2, 0.015);
+        if (u <= 0) return; // (the door hides the rest)
+        // the fridge, open: the light inside, glass shelves, and the vegetable drawer at the bottom
+        cubby(c, 0.05, -(top - 0.01), a - 0.05, -0.1, d, inside);
+        c.save(); c.beginPath(); c.rect(0.05, -(top - 0.01), a - 0.1, top - 0.11); c.clip();
+        c.fillStyle = rgrad(c, a / 2, -(top - 0.08), 0.02, 0.6, [[0, 'rgba(255,253,225,0.9)'], [1, 'rgba(255,253,225,0)']]); c.fillRect(0, -top, a, top);
+        for (const z of [0.52, 0.92]) shelfIn(c, 0.05, a - 0.05, z, d, 'rgba(200,232,246,0.75)', lw);
+        rrFill(c, 'rgba(178,226,200,0.55)', 0.08, -0.4, a - 0.16, 0.28, 0.03);
+        c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = lw; c.beginPath(); rr(c, 0.08, -0.4, a - 0.16, 0.28, 0.03); c.stroke();
+        c.restore();
+      });
+      fridgeDoor(c, G, col, u);
+    },
+    paintDoor(c, G, col, u) { fridgeDoor(c, G, col, u); } }),
+  isoPantry: isoPiece({ name: 'Pantry shelves', byWall: true, dims: [0.85, 0.42, 1.78], tints: FURN,
+    tops: [0.1, 0.52, 0.94, 1.36].map(z => shelfLine(0.85, 0.29, z, 0.37, 0.12)).concat([shelfLine(0.85, 0.21, 1.78, 0, 0.08)]),
+    paint(c, G, col) {
+      const a = 0.85, b = 0.42, h = 1.78, fl = [0.1, 0.52, 0.94, 1.36];
+      ibox(c, G, [0, 0, 0], [a, b, h], col);
+      onFront(c, G, a, b, () => {
+        fl.forEach((z, i) => cubby(c, 0.05, -((fl[i + 1] || h - 0.02) - 0.05), a - 0.05, -z, 0.26, col));
+        c.strokeStyle = ISO_LINE; c.lineWidth = 0.006 / G.k;
+        fl.forEach((z, i) => c.strokeRect(0.05, -((fl[i + 1] || h - 0.02) - 0.05), a - 0.1, (fl[i + 1] || h - 0.02) - 0.05 - z));
+      });
+    } }),
+  isoWallCupboard: isoPiece({ name: 'Wall cupboard', dims: [0.8, 0.34, 0.66], tints: FURN, onWall: true,
+    tops: [shelfLine(0.8, 0.23, 0.05, 0.25, 0.1), shelfLine(0.8, 0.23, 0.35, 0.25, 0.1), shelfLine(0.8, 0.17, 0.66, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 0.8, b = 0.34, h = 0.66;
+      ibox(c, G, [0, 0, 0], [a, b, h], col);
+      onFront(c, G, a, b, () => {
+        for (const [z0, z1] of [[0.05, 0.31], [0.35, h - 0.05]]) { cubby(c, 0.05, -z1, a - 0.05, -z0, 0.2, col); c.strokeStyle = ISO_LINE; c.lineWidth = 0.006 / G.k; c.strokeRect(0.05, -z1, a - 0.1, z1 - z0); }
+        c.fillStyle = shade(col, 0.12); for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(0.06 + i * (a - 0.12) / 5, -(h - 0.005), 0.03, 0, Math.PI); c.fill(); } // a scalloped edge
+      });
+    } }),
+  isoShopShelf: isoPiece({ name: 'Shop shelves', byWall: true, dims: [1.35, 0.5, 1.5], tints: SHOPS,
+    tops: [0.16, 0.55, 0.94].map(z => shelfLine(1.35, 0.34, z, 0.34, 0.12)).concat([shelfLine(1.35, 0.3, 1.3, 0, 0.1)]),
+    paint(c, G, col) {
+      const a = 1.35, b = 0.5, h = 1.3, fl = [0.16, 0.55, 0.94], lw = 0.006 / G.k, tags = ['#ffd45c', '#ff8fa3', '#8fd0ef', '#a6dcc3'];
+      ibox(c, G, [0, 0, 0], [a, b, h], '#f4f1ec', { side: shade(col, -0.1), front: '#f4f1ec' });
+      onFront(c, G, a, b, () => {
+        fl.forEach((z, i) => { const z1 = (fl[i + 1] || h - 0.02) - 0.06; cubby(c, 0.06, -z1, a - 0.06, -z, 0.3, '#f7f4ef'); });
+        rrFill(c, col, 0, -h, 0.06, h, 0.01); rrFill(c, col, a - 0.06, -h, 0.06, h, 0.01); // the uprights, in the shop's colour
+        fl.forEach((z, i) => { // a strip along each shelf's edge, with little price tags
+          rrFill(c, '#ffffff', 0.06, -z, a - 0.12, 0.05, 0.01);
+          for (let k = 0; k < 4; k++) rrFill(c, tags[(i + k) % 4], 0.14 + k * (a - 0.3) / 3, -z + 0.008, 0.07, 0.034, 0.008);
+          c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.strokeRect(0.06, -z, a - 0.12, 0.05);
+        });
+        rrFill(c, shade(col, -0.25), 0.06, -0.1, a - 0.12, 0.1, 0.01);
+      });
+      ibox(c, G, [0.02, 0.18, h], [a - 0.02, 0.26, h + 0.2], col, { front: shade(col, 0.08) }); // the sign along the top
+      onFront(c, G, a - 0.02, 0.26, () => { c.fillStyle = '#ffffff'; for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(0.1 + i * (a - 0.24) / 6, -(h + 0.1), 0.035, 0, TAU); c.fill(); } });
+    } }),
+  isoTable: isoPiece({ name: 'Table', dims: [1.0, 0.7, 0.68], tints: WOODS,
+    tops: [shelfLine(1.0, 0.35, 0.68, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 1.0, b = 0.7;
+      legs(c, G, [[a - 0.06, b - 0.06], [a - 0.06, 0.12], [0.12, b - 0.06]], 0.62, shade(col, -0.18), 0.06);
+      ibox(c, G, [0.04, 0.04, 0.56], [a - 0.04, b - 0.04, 0.62], shade(col, -0.1), { line: false });
+      ibox(c, G, [0, 0, 0.62], [a, b, 0.68], col);
+    } }),
+  isoChair: isoPiece({ name: 'Chair', dims: [0.44, 0.44, 0.9], tints: WOODS,
+    tops: [shelfLine(0.44, 0.26, 0.48, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 0.44, b = 0.44, dk = shade(col, -0.18);
+      legs(c, G, [[a - 0.02, b - 0.02], [a - 0.02, 0.07], [0.07, b - 0.02]], 0.42, dk, 0.045);
+      ibox(c, G, [0, 0, 0.42], [a, b, 0.48], col);
+      ibox(c, G, [0.02, 0, 0.48], [0.07, 0.05, 0.9], dk, { lw: 0.006 }); ibox(c, G, [a - 0.07, 0, 0.48], [a - 0.02, 0.05, 0.9], dk, { lw: 0.006 });
+      ibox(c, G, [0.02, 0, 0.72], [a - 0.02, 0.05, 0.88], col, { lw: 0.006 });
+    } }),
+  isoArmchair: isoPiece({ name: 'Armchair', dims: [0.86, 0.74, 0.74], tints: SOFAS,
+    tops: [shelfLine(0.86, 0.48, 0.4, 0, 0.24)],
+    paint(c, G, col) {
+      const a = 0.86, b = 0.74, lt = shade(col, 0.12);
+      legs(c, G, [[a - 0.04, b - 0.03], [a - 0.04, 0.1], [0.1, b - 0.03]], 0.07, '#b9875b', 0.05);
+      ibox(c, G, [0, 0, 0.07], [a, 0.22, 0.74], col);
+      ibox(c, G, [0, 0.22, 0.07], [0.17, b, 0.5], col);
+      ibox(c, G, [0.17, 0.22, 0.07], [a - 0.17, b, 0.27], shade(col, -0.06));
+      ibox(c, G, [0.18, 0.22, 0.4], [a - 0.18, 0.34, 0.68], lt);
+      ibox(c, G, [0.18, 0.24, 0.27], [a - 0.18, b + 0.015, 0.4], lt);
+      ibox(c, G, [a - 0.17, 0, 0.07], [a, b, 0.5], col);
+    } }),
+  isoCoffeeTable: isoPiece({ name: 'Coffee table', dims: [0.95, 0.56, 0.4], tints: WOODS,
+    tops: [shelfLine(0.95, 0.28, 0.4, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 0.95, b = 0.56, dk = shade(col, -0.2);
+      ibox(c, G, [0.06, 0.06, 0.08], [a - 0.06, b - 0.06, 0.12], dk, { lw: 0.006 }); // the shelf underneath
+      legs(c, G, [[a - 0.03, b - 0.03], [a - 0.03, 0.09], [0.09, b - 0.03]], 0.34, dk, 0.06);
+      ibox(c, G, [0, 0, 0.34], [a, b, 0.4], col);
+    } }),
+  isoSideboard: isoPiece({ name: 'Sideboard', byWall: true, dims: [1.25, 0.45, 0.66], tints: FURN,
+    tops: [[[0.47, 0.3, 0.13], [0.78, 0.3, 0.13], 0.38], shelfLine(1.25, 0.22, 0.66, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 1.25, b = 0.45, h = 0.66, lw = 0.006 / G.k;
+      legs(c, G, [[a - 0.04, b - 0.04], [a - 0.04, 0.1], [0.1, b - 0.04]], 0.08, shade(col, -0.35), 0.05);
+      ibox(c, G, [0, 0, 0.08], [a, b, h], col);
+      onFront(c, G, a, b, () => {
+        frontDoor(c, 0.05, -(h - 0.05), a / 3 - 0.01, -0.13, col, lw, a / 3 - 0.07);
+        cubby(c, a / 3 + 0.03, -(h - 0.05), 2 * a / 3 - 0.03, -0.13, 0.28, col);
+        c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.strokeRect(a / 3 + 0.03, -(h - 0.05), a / 3 - 0.06, h - 0.18);
+        frontDoor(c, 2 * a / 3 + 0.01, -(h - 0.05), a - 0.05, -0.13, col, lw, 2 * a / 3 + 0.07);
+      });
+    } }),
+  isoWasher: isoPiece({ name: 'Washing machine', byWall: true, dims: [0.64, 0.62, 0.86], tints: WASHERS,
+    tops: [shelfLine(0.64, 0.31, 0.86, 0, 0.08)],
+    paint(c, G, col) {
+      const a = 0.64, b = 0.62, h = 0.86, lw = 0.006 / G.k;
+      ibox(c, G, [0.03, 0.03, 0], [a - 0.03, b - 0.04, 0.04], '#9aa3ad', { line: false });
+      ibox(c, G, [0, 0, 0.04], [a, b, h], col);
+      onFront(c, G, a, b, () => {
+        rrFill(c, shade(col, -0.08), 0.03, -(h - 0.03), a - 0.06, 0.13, 0.02);
+        c.fillStyle = '#ffffff'; c.beginPath(); c.arc(a - 0.12, -(h - 0.095), 0.04, 0, TAU); c.fill();
+        c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.stroke();
+        for (const [k, cc] of [[0, '#7cc576'], [1, '#ffd45c'], [2, '#ff8fa3']]) { c.fillStyle = cc; c.fillRect(0.08 + k * 0.06, -(h - 0.085), 0.035, 0.02); }
+        const cy = -0.38, r = 0.22; // the round door, with the washing going round in suds
+        c.fillStyle = '#c4ccd4'; c.beginPath(); c.arc(a / 2, cy, r, 0, TAU); c.fill(); c.stroke();
+        c.fillStyle = vgrad(c, cy - r, cy + r, [[0, '#9fd4f0'], [1, '#3f86c4']]); c.beginPath(); c.arc(a / 2, cy, r * 0.76, 0, TAU); c.fill();
+        c.fillStyle = 'rgba(255,255,255,0.85)'; for (const [dx, dy, s] of [[-0.06, 0.05, 0.05], [0.04, 0.08, 0.04], [0.08, -0.02, 0.03], [-0.02, -0.06, 0.025]]) { c.beginPath(); c.arc(a / 2 + dx, cy + dy, s, 0, TAU); c.fill(); }
+        c.strokeStyle = 'rgba(255,255,255,0.6)'; c.lineWidth = 0.012; c.beginPath(); c.arc(a / 2, cy, r * 0.6, 3.6, 4.6); c.stroke();
+      });
+    } }),
+});
+
+/* ----- for a bathroom: a bath to float a duck in, a toilet that flushes, a basin, a towel rail and a fluffy mat ----- */
+const BATHS = ['#bfe3e6', '#f6c6d0', '#f3efe6', '#bcd2f0', '#f6e3a1', '#d9cbef'];
+const SEATS = ['#ffffff', '#f6c6d0', '#bfe3d2', '#bcd2f0', '#f6e3a1', '#d9cbef'];
+const TOWELS = ['#f4a7b9', '#8fd0ef', '#a6dcc3', '#f6d58b', '#cbb8ee', '#f5b693'];
+const CHROME = '#d7dee4';
+// A chrome tap at (x, y) on a top at height z, curving out over the basin toward +y, with a knob either side.
+function isoTap(c, G, x, y, z, tall, reach) {
+  const P = G.P;
+  c.strokeStyle = lgrad(c, ...P(x, y, z), ...P(x, y + reach, z + tall), [[0, '#9aa4ae'], [0.5, '#f3f6f8'], [1, '#aeb7bf']]); c.lineWidth = 0.03 * G.k; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(...P(x, y, z)); c.lineTo(...P(x, y, z + tall * 0.85)); c.quadraticCurveTo(...P(x, y, z + tall), ...P(x, y + reach * 0.45, z + tall * 0.95)); c.lineTo(...P(x, y + reach, z + tall * 0.68)); c.stroke(); c.lineCap = 'butt';
+  for (const dx of [-0.1, 0.1]) { c.fillStyle = '#e4e9ee'; c.beginPath(); c.ellipse(...P(x + dx, y, z + 0.025), 0.022 * G.k * 1.4, 0.018 * G.k, 0, 0, TAU); c.fill(); }
+}
+Object.assign(ART, {
+  // Things put in the bath float on the water (its top line), a duck especially.
+  isoBath: isoPiece({ name: 'Bath', byWall: true, dims: [1.35, 0.66, 0.56], tints: BATHS,
+    tops: [[[0.3, 0.33, 0.56], [1.15, 0.33, 0.56]]],
+    paint(c, G, col) {
+      const a = 1.35, b = 0.66, h = 0.56, P = G.P, lw = 0.006 / G.k;
+      ibox(c, G, [0.03, 0.03, 0], [a - 0.03, b - 0.05, 0.05], shade(col, -0.4), { line: false });
+      ibox(c, G, [0, 0, 0.05], [a, b, h - 0.07], col);
+      onFront(c, G, a, b, () => { // the bath's side panel
+        c.strokeStyle = shade(col, -0.16); c.lineWidth = 0.014; c.beginPath(); rr(c, 0.07, -(h - 0.12), a - 0.14, h - 0.24, 0.05); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,0.45)'; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(0.22 + i * (a - 0.44) / 4, -(h - 0.07) / 2 - 0.03, 0.035, 0, TAU); c.fill(); }
+      });
+      ibox(c, G, [-0.01, -0.01, h - 0.07], [a + 0.01, b + 0.01, h], '#ffffff', { side: '#e6ebf0', front: '#f3f6f9', top: '#ffffff' });
+      onTop(c, G, h, () => { // inside: its curved sides, and the water
+        rrFill(c, '#d5e0e8', 0.07, 0.07, a - 0.14, b - 0.14, 0.2);
+        c.fillStyle = lgrad(c, 0, 0.1, 0, b - 0.06, [[0, '#9fd8ee'], [1, '#c9ecf7']]); c.beginPath(); rr(c, 0.1, 0.12, a - 0.18, b - 0.19, 0.17); c.fill();
+        c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 0.012; c.beginPath(); c.moveTo(0.35, 0.22); c.quadraticCurveTo(0.5, 0.18, 0.65, 0.22); c.moveTo(0.8, 0.45); c.quadraticCurveTo(0.95, 0.41, 1.1, 0.45); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,0.92)'; c.beginPath(); // a heap of bubbles at the far end
+        for (const [x, y, r] of [[1.05, 0.2, 0.07], [1.14, 0.28, 0.06], [1.0, 0.33, 0.06], [1.12, 0.42, 0.055], [0.93, 0.25, 0.05], [1.18, 0.16, 0.04]]) { c.moveTo(x + r, y); c.arc(x, y, r, 0, TAU); }
+        c.fill();
+      });
+      c.fillStyle = 'rgba(255,255,255,0.95)'; c.strokeStyle = 'rgba(140,190,215,0.6)'; c.lineWidth = lw * 0.8 * G.k;
+      for (const [x, y, z, r] of [[1.08, 0.26, 0.64, 0.05], [1.16, 0.36, 0.62, 0.04], [0.98, 0.3, 0.68, 0.035], [1.1, 0.2, 0.74, 0.025]]) { c.beginPath(); c.arc(...P(x, y, z), r * G.k, 0, TAU); c.fill(); c.stroke(); }
+      isoTap(c, G, 0.16, 0.08, h, 0.24, 0.16);
+    } }),
+  // Tap it and it flushes.
+  isoToilet: isoPiece({ name: 'Toilet', byWall: true, dims: [0.46, 0.72, 0.84], tints: SEATS,
+    tops: [[[0.07, 0.11, 0.84], [0.39, 0.11, 0.84]]],
+    paint(c, G, col) {
+      const a = 0.46, white = '#ffffff', o = { side: '#e3e8ee', front: '#f3f6f9', top: '#ffffff' };
+      ibox(c, G, [0.13, 0.2, 0], [a - 0.13, 0.52, 0.3], white, o); // the foot
+      ibox(c, G, [0.03, 0, 0.36], [a - 0.03, 0.2, 0.8], white, o); // the cistern, with its lid and button
+      ibox(c, G, [0.01, -0.01, 0.8], [a - 0.01, 0.22, 0.84], white, o);
+      onTop(c, G, 0.84, () => { c.fillStyle = CHROME; c.beginPath(); c.ellipse(a / 2, 0.11, 0.05, 0.04, 0, 0, TAU); c.fill(); c.strokeStyle = ISO_LINE; c.lineWidth = 0.008; c.stroke(); });
+      for (let z = 0.24; z <= 0.4; z += 0.02) onTop(c, G, z, () => { // the bowl
+        const k = 0.8 + 0.2 * (z - 0.24) / 0.16; c.fillStyle = z < 0.39 ? shade('#eef2f6', -0.04 - 0.1 * (0.4 - z) / 0.16) : white;
+        c.beginPath(); c.ellipse(a / 2, 0.45, 0.2 * k, 0.26 * k, 0, 0, TAU); c.fill();
+      });
+      for (let z = 0.4; z <= 0.47; z += 0.015) onTop(c, G, z, () => { c.fillStyle = z < 0.46 ? shade(col, -0.12) : col; c.beginPath(); c.ellipse(a / 2, 0.45, 0.2, 0.26, 0, 0, TAU); c.fill(); }); // the lid, down
+      onTop(c, G, 0.47, () => {
+        c.strokeStyle = ISO_LINE; c.lineWidth = 0.008; c.beginPath(); c.ellipse(a / 2, 0.45, 0.2, 0.26, 0, 0, TAU); c.stroke();
+        c.fillStyle = 'rgba(255,255,255,0.4)'; c.beginPath(); c.ellipse(a / 2 - 0.05, 0.4, 0.07, 0.11, -0.3, 0, TAU); c.fill();
+      });
+      ibox(c, G, [a / 2 - 0.08, 0.19, 0.4], [a / 2 + 0.08, 0.23, 0.47], CHROME, { lw: 0.005 }); // the hinge
+    } }),
+  isoBasin: isoPiece({ name: 'Basin', byWall: true, dims: [0.66, 0.5, 1.08], tints: BATHS,
+    tops: [[[0.06, 0.07, 0.84], [0.6, 0.07, 0.84]]],
+    paint(c, G, col) {
+      const a = 0.66, b = 0.5, h = 0.84, lw = 0.006 / G.k;
+      ibox(c, G, [0.04, 0, 0], [a - 0.03, b - 0.08, 0.08], shade(col, -0.45), { line: false });
+      ibox(c, G, [0, 0, 0.08], [a, b - 0.03, h - 0.06], col);
+      onFront(c, G, a, b - 0.03, () => { frontDoor(c, 0.04, -(h - 0.1), a / 2 - 0.01, -0.12, col, lw, a / 2 - 0.07); frontDoor(c, a / 2 + 0.01, -(h - 0.1), a - 0.04, -0.12, col, lw, a / 2 + 0.07); });
+      ibox(c, G, [-0.015, 0, h - 0.06], [a + 0.015, b + 0.015, h], '#ffffff', { side: '#e3e8ee', front: '#f3f6f9', top: '#ffffff' });
+      onTop(c, G, h, () => { // the basin, sunk into the top
+        c.fillStyle = '#c9d4dc'; c.beginPath(); c.ellipse(a / 2, 0.3, 0.21, 0.15, 0, 0, TAU); c.fill();
+        c.fillStyle = '#e4ebf0'; c.beginPath(); c.ellipse(a / 2 + 0.01, 0.31, 0.18, 0.125, 0, 0, TAU); c.fill();
+        c.fillStyle = '#9aa6b1'; c.beginPath(); c.arc(a / 2 + 0.02, 0.32, 0.02, 0, TAU); c.fill();
+      });
+      isoTap(c, G, a / 2, 0.07, h, 0.2, 0.15);
+    } }),
+  isoTowelRail: isoPiece({ name: 'Towel rail', dims: [0.62, 0.16, 0.7], tints: TOWELS, onWall: true, hangAt: 0.34,
+    paint(c, G, col) {
+      const a = 0.62, lw = 0.006 / G.k;
+      for (const x of [0.06, a - 0.06]) ibox(c, G, [x - 0.02, 0, 0.6], [x + 0.02, 0.13, 0.64], CHROME, { lw: 0.005 });
+      ibox(c, G, [0.02, 0.1, 0.6], [a - 0.02, 0.14, 0.64], CHROME, { lw: 0.005 });
+      ibox(c, G, [0.1, 0.08, 0.6], [a - 0.1, 0.16, 0.67], col, { lw: 0.006 }); // the towel, folded over the rail
+      onFront(c, G, a - 0.1, 0.16, () => {
+        const w = a - 0.2;
+        rrFill(c, col, 0, -0.62, w, 0.56, 0.025);
+        c.fillStyle = 'rgba(255,255,255,0.75)'; c.fillRect(0, -0.2, w, 0.035); c.fillStyle = shade(col, -0.15); c.fillRect(0, -0.15, w, 0.02);
+        c.strokeStyle = ISO_LINE; c.lineWidth = lw; c.beginPath(); rr(c, 0, -0.62, w, 0.56, 0.025); c.stroke();
+        c.strokeStyle = shade(col, -0.1); c.lineWidth = 0.008; c.beginPath(); for (let u = 0.03; u < w; u += 0.035) { c.moveTo(u, -0.06); c.lineTo(u, -0.03); } c.stroke(); // its fringe
+      });
+    } }),
+  isoBathMat: isoPiece({ name: 'Bath mat', dims: [0.85, 0.55, 0], tints: RUGS_ISO, floor: true,
+    paint(c, G, col) {
+      const a = 0.85, b = 0.55;
+      onTop(c, G, 0, () => {
+        c.fillStyle = col; c.beginPath(); // a fluffy, scalloped edge
+        for (let x = 0.06; x <= a - 0.05; x += 0.073) { c.moveTo(x + 0.05, 0.05); c.arc(x, 0.05, 0.05, 0, TAU); c.moveTo(x + 0.05, b - 0.05); c.arc(x, b - 0.05, 0.05, 0, TAU); }
+        for (let y = 0.06; y <= b - 0.05; y += 0.073) { c.moveTo(0.1, y); c.arc(0.05, y, 0.05, 0, TAU); c.moveTo(a, y); c.arc(a - 0.05, y, 0.05, 0, TAU); }
+        c.fill();
+        rrFill(c, col, 0.04, 0.04, a - 0.08, b - 0.08, 0.04);
+        rrFill(c, shade(col, 0.3), 0.12, 0.12, a - 0.24, b - 0.24, 0.05);
+        c.fillStyle = shade(col, 0.05); c.beginPath();
+        for (let x = 0.2; x < a - 0.15; x += 0.11) for (let y = 0.2; y < b - 0.15; y += 0.1) { c.moveTo(x + 0.018, y); c.arc(x, y, 0.018, 0, TAU); }
+        c.fill();
+      });
     } }),
 });
 
@@ -3412,7 +3936,8 @@ function buildArt(it, S) {
     const def = ART[it.a];
     if (!def) return null;
     ar = def.ar;
-    paint = (c, x, y, w) => { c.save(); c.translate(x + w / 2, y + w * ar / 2); c.scale(w, w); def.draw(c, tintOf(it), ar, !!it.lit); c.restore(); };
+    const u = def.door ? doorStep(it) / DOOR_STEPS : undefined;
+    paint = (c, x, y, w) => { c.save(); c.translate(x + w / 2, y + w * ar / 2); c.scale(w, w); def.draw(c, tintOf(it), ar, !!it.lit, u); c.restore(); };
   } else {
     const img = photoImg.get(it.p);
     if (!img) return null;
@@ -3444,7 +3969,7 @@ function buildArt(it, S) {
 }
 
 function artBase(it) {
-  const base = it.t === 'e' ? 'e' + it.e : it.t === 'a' ? 'a' + it.a + ':' + (it.c || 0) + (it.lit && ART[it.a] && ART[it.a].lights ? '*' : '') : 'p' + it.p;
+  const base = it.t === 'e' ? 'e' + it.e : it.t === 'a' ? 'a' + it.a + ':' + (it.c || 0) + (it.lit && ART[it.a] && ART[it.a].lights ? '*' : '') + (isoDoor(it) ? '|' + doorStep(it) : '') : 'p' + it.p;
   return it.fx && FINISHES[it.fx] ? base + '~' + it.fx : base;
 }
 function stickerArt(it, needPx) {
@@ -3901,6 +4426,8 @@ const SFX = {
   flop() { hiss(0.12, { f: 800, to: 2400, q: 0.8, gain: 0.07 }); knock(0.27, 140, 0.3); },
   standUp() { tone(vary(260), 0.2, { to: 620, glide: 0.12, gain: 0.12 }); },
   gone() { tone(700, 0.18, { to: 180, gain: 0.12 }); hiss(0.15, { f: 2000, to: 400, gain: 0.06 }); },
+  lockOn() { tone(vary(1900), 0.03, { type: 'square', lp: 5000, gain: 0.07 }); knock(0.05, 320, 0.16); tone(vary(2600), 0.05, { type: 'triangle', gain: 0.06, at: 0.06 }); }, // a padlock snapping shut
+  lockOff() { knock(0, 280, 0.12); tone(vary(1500), 0.05, { type: 'triangle', to: 2100, gain: 0.07, at: 0.05 }); },               // and springing open
   undo() { tone(660, 0.07, { type: 'triangle', to: 520, gain: 0.08 }); },
   redo() { tone(520, 0.07, { type: 'triangle', to: 660, gain: 0.08 }); },
   /* moving around the book */
@@ -3945,6 +4472,13 @@ const SFX = {
   whistle() { tone(1850, 0.9, { vib: [6, 30], gain: 0.06, attack: 0.2 }); hiss(0.9, { f: 4200, q: 0.7, gain: 0.06, attack: 0.15 }); },
   sizzle() { hiss(0.8, { type: 'highpass', f: 4200, gain: 0.08, attack: 0.03 }); for (let i = 0; i < 6; i++) hiss(0.012, { f: 7000, q: 2, gain: 0.07, at: Math.random() * 0.7 }); },
   clink() { tone(vary(2300), 0.35, { gain: 0.07 }); tone(vary(3500), 0.25, { gain: 0.04 }); },
+  flush() { // the handle, water rushing round and away with a gurgle, then the cistern filling up again
+    knock(0, 420, 0.16);
+    hiss(1.3, { f: 1800, to: 380, q: 0.9, gain: 0.2, attack: 0.12, am: [7, 0.5], at: 0.08 });
+    for (let i = 0; i < 6; i++) tone(vary(520, 0.4), 0.09, { to: 180, gain: 0.07, at: 0.75 + i * 0.1 + Math.random() * 0.05 });
+    hiss(0.8, { f: 2600, to: 4200, q: 1.4, gain: 0.04, attack: 0.3, at: 1.3 });
+  },
+  splash() { hiss(0.35, { f: 2200, to: 700, q: 0.7, gain: 0.16, attack: 0.01 }); for (let i = 0; i < 4; i++) tone(vary(700, 0.5), 0.07, { to: 1600, gain: 0.07, at: 0.06 + i * 0.07 }); },
   water() { hiss(0.7, { f: 1500, q: 0.6, gain: 0.07, attack: 0.08 }); for (let i = 0; i < 4; i++) tone(vary(900, 0.5), 0.07, { to: 1800, gain: 0.06, at: 0.12 + i * 0.14 }); },
   ignite() { for (const at of [0, 0.12]) hiss(0.02, { f: 4000, q: 2, gain: 0.15, at }); hiss(0.5, { type: 'lowpass', f: 400, to: 1500, gain: 0.2, attack: 0.06, at: 0.22 }); },
   kaching() { hiss(0.06, { f: 3000, gain: 0.08 }); tone(2093, 0.6, { gain: 0.07, at: 0.08 }); tone(2637, 0.6, { gain: 0.06, at: 0.08 }); for (let i = 0; i < 4; i++) tone(vary(4000, 0.3), 0.08, { gain: 0.04, at: 0.15 + i * 0.05 }); },
@@ -4014,6 +4548,7 @@ const POP_MS = 280, FLIP_MS = 340;
 let rafId = 0, nowT = 0, drawn = 0, exporting = false, liftedId = null, liftedWith = null; // liftedWith: what stands on the lifted sticker
 const ridesWith = new Map(); // item id -> the sticker it stands on, while that one wobbles or turns round like a card
 let anim = null, inertia = null, dropHint = null; // dropHint: the frame a dragged sticker would go into
+let liftDraw = null; // while a sticker is moved: { s, M, list }, it (and what stands on it) put by to be drawn last
 
 function requestRender() { if (!rafId) rafId = requestAnimationFrame(frame); }
 function frame(t) {
@@ -4106,16 +4641,30 @@ function applyScreen(S) {
 /* ---------- drawing ---------- */
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  drawn = 0;
+  drawn = 0; liftDraw = null;
   if (!exporting) pipSpots.length = 0;
   if (turn) { drawTurn(); return; }
   let k = path.length - 1, M = camMatrix();
+  // The sticker being moved is drawn over everything else: in front of the stickers above it in its scene, and out past
+  // the edge of the doorway it's seen through (it's taken out if it's let go there).
+  if (liftedId && !exporting) liftDraw = { s: rootScene().id, M, list: [] };
   while (k > 0 && !coversViewport(k, M)) { M = mul(M, inv(localMatrix(portalItemOf(k)))); k--; }
   const sc = scene(path[k].s);
   if (k === 0 && !coversViewport(0, M)) { drawDesk(M, sc); drawSceneAt(sc, M, 0, true); }
   else drawSceneAt(sc, M, 0, false);
   if (k === 0) drawPageDecor(M, sc);
+  if (liftDraw) { // the moved sticker first, then what stands on it
+    const L = liftDraw.list.sort((a, b) => (b.it.id === liftedId) - (a.it.id === liftedId));
+    liftDraw = null;
+    for (const o of L) drawItem(o.it, o.M, o.depth, o.inner);
+  }
   if (!exporting) drawSelection();
+}
+// Two screen matrices that are the same but for rounding: the scene being drawn is the one the camera is in, seen where
+// the camera sees it (not, say, a smaller copy of it in an infinity frame).
+function sameView(A, B) {
+  const k = Math.abs(B.a) + Math.abs(B.b);
+  return Math.abs(A.a - B.a) + Math.abs(A.b - B.b) + Math.abs(A.c - B.c) + Math.abs(A.d - B.d) <= 1e-6 * k && Math.abs(A.e - B.e) + Math.abs(A.f - B.f) < 0.5;
 }
 
 function drawSceneAt(sc, M, depth, top) {
@@ -4127,17 +4676,24 @@ function drawSceneAt(sc, M, depth, top) {
   } else { drawBackdrop(ctx, sc, lod); if (isCover(sc)) drawCoverTitle(ctx, sc, lod); }
   const P = popsUp(sc) ? roomPop(sc) : 1, pre = P < 1 ? popMatrices(sc, P) : null; // a room popping up
   const pip = P < 1 ? null : pipIn(sc); // Pip the mouse, if she's hiding here today: drawn just behind whatever she hides behind
+  const lift = liftDraw && liftDraw.s === sc.id && sameView(M, liftDraw.M) ? liftDraw : null; // the moved sticker is in here
+  const ins = insidesIn(sc); // what's in the fridge: drawn with it, behind its door, and not at all while it's shut
+  const at = it => (!pre ? M : pre.get(it.id) ? mul(M, pre.get(it.id)) : null);
   for (const it of sc.items) {
     if (drawn > MAX_DRAWN) break;
+    if (ins && ins.of.has(it.id)) continue;
     if (pip && pip.behind === it.id) { drawPip(pip, M); pip.behind = null; }
-    if (!pre) drawItem(it, M, depth);
-    else if (pre.get(it.id)) drawItem(it, mul(M, pre.get(it.id)), depth);
+    const Mt = at(it);
+    if (!Mt) continue;
+    const inner = ins && ins.by.has(it.id) ? ins.by.get(it.id).map(o => ({ it: o, M: at(o), depth, pip: pip && pip.behind === o.id ? () => { drawPip(pip, M); pip.behind = null; } : null })).filter(o => o.M) : null;
+    if (lift && (it.id === liftedId || (liftedWith && liftedWith.has(it.id)))) lift.list.push({ it, M: Mt, depth, inner }); // drawn last (see render)
+    else drawItem(it, Mt, depth, inner);
   }
-  if (pip && pip.behind !== null) drawPip(pip, M);
+  if (pip && pip.behind !== null && !(ins && ins.of.has(pip.behind))) drawPip(pip, M); // (behind something in a shut fridge, she's hidden)
   drawBursts(sc, M);
 }
 
-function drawItem(it, M, depth) {
+function drawItem(it, M, depth, inner) {
   if (it.t === 'p' && !scene(it.s)) return;
   const tl = shownTilt(it), ext = itemExtent(it, tl), R = riderMove(it, M);
   let Mi = mul(M, localMatrix(it, M));
@@ -4160,7 +4716,7 @@ function drawItem(it, M, depth) {
   const J = jiggles.size && moveMatrix(it.id, ext, it.flip); // tapped, it does its little dance
   if (J) Mi = mul(Mi, J);
   if (it.t === 'p') drawPortal(it, Mi, depth, pop);
-  else drawSticker(it, Mi, k, pop, tl);
+  else drawSticker(it, Mi, k, pop, tl, inner);
 }
 
 // Something standing on a sticker that is lifted, wobbling or turning round goes with it: the extra move (on screen)
@@ -4178,7 +4734,7 @@ function riderMove(it, M) {
   return mul(L, mul(T, inv(L)));
 }
 
-function drawSticker(it, Mi, k, pop, tl) {
+function drawSticker(it, Mi, k, pop, tl, inner) {
   const lifted = liftedId === it.id && !exporting;
   const s = (lifted ? 1.07 : 1) * pop;
   const art = stickerArt(it, k * s * DPR);
@@ -4206,6 +4762,13 @@ function drawSticker(it, Mi, k, pop, tl) {
     ctx.drawImage(art.canvas, -0.5 - art.padU, -art.ar / 2 - art.padU, 1 + 2 * art.padU, art.ar + 2 * art.padU);
   }
   if (lifted) { ctx.shadowColor = 'rgba(0,0,0,0)'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; }
+  const u = inner && inner.length && isoDoor(it) ? doorStep(it) / DOOR_STEPS : 0;
+  if (u > 0) { // what's on its shelves, then its door again, which stands in front of them (and as it was drawn just now)
+    const T = ctx.getTransform();
+    for (const o of inner) { if (o.pip) o.pip(); drawItem(o.it, o.M, o.depth); }
+    ctx.setTransform(T);
+    ART[it.a].drawDoor(ctx, tintOf(it), u);
+  }
 }
 
 function drawPortal(it, Mi, depth, pop) {
@@ -4233,13 +4796,17 @@ function selectedItem() {
   const sc = rootScene();
   return sc.id === sel.s ? findItem(sc, sel.id) : null;
 }
-function handlePos(it) {
+// Knobs just outside the bottom corners of a selected sticker's box: the right one turns and resizes it, the left one
+// locks it in place.
+function cornerKnob(it, right) {
   const M = mul(camMatrix(), localMatrix(it, camMatrix())), ext = itemExtent(it, shownTilt(it));
-  const [x, y] = ap(M, ext[2], ext[3]);
+  const [x, y] = ap(M, right ? ext[2] : ext[0], ext[3]);
   const [cx, cy] = ap(M, (ext[0] + ext[2]) / 2, (ext[1] + ext[3]) / 2);
   const dx = x - cx, dy = y - cy, l = Math.hypot(dx, dy) || 1;
   return [x + dx / l * 8, y + dy / l * 8];
 }
+function handlePos(it) { return cornerKnob(it, true); }
+function lockPos(it) { return cornerKnob(it, false); }
 // The selection outline in the item's own units: its box, or for a turned or tilted sticker that box turned and tipped back.
 function outlineOf(it) {
   const tl = shownTilt(it);
@@ -4277,6 +4844,19 @@ function drawSelection() {
     ctx.restore();
     ctx.strokeStyle = '#17876f'; ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   };
+  // the lock: open, on a white knob, or shut on a green one (and then it's the only knob, since a locked sticker stays put)
+  const [lx, ly] = lockPos(it);
+  if (it.locked) {
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8 * DPR;
+    ctx.fillStyle = '#17876f'; ctx.beginPath(); ctx.arc(lx, ly, 14, 0, TAU); ctx.fill(); ctx.restore();
+    ctx.strokeStyle = '#ffffff'; ctx.fillStyle = '#ffffff'; ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  } else { knobAt(lx, ly, 13); ctx.fillStyle = '#17876f'; }
+  ctx.beginPath(); rr(ctx, lx - 5, ly - 0.5, 10, 7.5, 1.6); ctx.stroke(); if (it.locked) ctx.fill();
+  ctx.beginPath(); // the shackle: shut, or lifted out on one side
+  if (it.locked) { ctx.moveTo(lx - 3.3, ly - 0.5); ctx.lineTo(lx - 3.3, ly - 3); ctx.arc(lx, ly - 3, 3.3, Math.PI, 0); ctx.lineTo(lx + 3.3, ly - 0.5); }
+  else { ctx.moveTo(lx + 3.3, ly - 0.5); ctx.lineTo(lx + 3.3, ly - 4.5); ctx.arc(lx, ly - 4.5, 3.3, 0, Math.PI, true); ctx.lineTo(lx - 3.3, ly - 3.5); }
+  ctx.stroke();
+  if (it.locked) { ctx.lineCap = 'butt'; return; }
   const [hx, hy] = handlePos(it), lie = canTilt(it) ? shownTilt(it) / TILT_MAX : 0;
   knobAt(hx, hy, 15);
   // the turning arrow, squashed flat as the sticker lies down (then it turns round on whatever it lies on)
@@ -4702,7 +5282,7 @@ function drawTurn() {
 }
 /* ---------- touch, mouse and keyboard ---------- */
 const pointers = new Map();
-let gesture = null, lastTap = null, panHist = [], wheelTimer = 0, rideTipShown = false;
+let gesture = null, lastTap = null, panHist = [], wheelTimer = 0, rideTipShown = false, lockTipShown = false;
 
 // The similarity that carries segment (a0, b0) onto (a1, b1), in screen space.
 function pairSim(a0, b0, a1, b1, allowRot) {
@@ -4716,17 +5296,18 @@ function pairSim(a0, b0, a1, b1, allowRot) {
 }
 
 function hitTest(x, y) {
-  const sc = rootScene(), M = camMatrix(), cur = selectedItem();
-  if (cur) { // a handle wins when the touch is nearer it than the sticker's middle (small or flat ones lie under their handles)
+  const sc = rootScene(), M = camMatrix(), cur = selectedItem(), ins = insidesIn(sc);
+  if (cur) { // a knob wins when the touch is nearer it than the sticker's middle (small or flat ones lie under their knobs)
     const [mx, my] = ap(mul(M, localMatrix(cur, M)), ...itemMiddle(cur)), dm = Math.hypot(x - mx, y - my);
-    const [hx, hy] = handlePos(cur), dh = Math.hypot(x - hx, y - hy);
-    const [tx, ty] = canTilt(cur) ? tiltHandlePos(cur) : [Infinity, Infinity], dt = Math.hypot(x - tx, y - ty);
-    if (dh < 24 && dh < dm && dh <= dt) return { item: cur, handle: true };
-    if (dt < 22 && dt < dm) return { item: cur, tilt: true };
+    const knobs = [['lock', lockPos(cur), 22]]; // a locked sticker has only its lock
+    if (!cur.locked) { knobs.push(['handle', handlePos(cur), 24]); if (canTilt(cur)) knobs.push(['tilt', tiltHandlePos(cur), 22]); }
+    let best = null;
+    for (const [k, [hx, hy], r] of knobs) { const d = Math.hypot(x - hx, y - hy); if (d < r && d < dm && (!best || d < best.d)) best = { k, d }; }
+    if (best) return { item: cur, [best.k]: true };
   }
   for (let i = sc.items.length - 1; i >= 0; i--) {
     const it = sc.items[i];
-    if (it.t === 'p' && !scene(it.s)) continue;
+    if ((it.t === 'p' && !scene(it.s)) || shutAway(ins, it)) continue; // (in the fridge with its door shut)
     const Mi = mul(M, localMatrix(it, M)), [u, v] = ap(inv(Mi), x, y);
     const ext = itemExtent(it), k = scaleOf(Mi), tol = 8 / k;
     if (u < ext[0] - tol || u > ext[2] + tol || v < ext[1] - tol || v > ext[3] + tol) continue;
@@ -4771,7 +5352,7 @@ function moveItemBy(g, dx, dy) {
   clampItem(it, true);
   const f = dropTargetFor(it, g.riders);
   dropHint = f ? f.id : null;
-  peekDoors(dropHint);
+  peekDoors(dropHint || (isoDoor(it) ? null : doorwayUnder(sc, it, g.riders)));
   if (isRoom(sc)) roomPlace(sc, it); // onto a wall or off it, and in front of or behind things
   carry(sc, it, g.riders);
   requestRender();
@@ -4857,6 +5438,15 @@ function tiltDrag(g, x, y) {
   if (t) it.tilt = t; else delete it.tilt;
   requestRender();
 }
+// The lock knob: a locked sticker stays just where it is, so it can't be knocked out of place. A drag on it moves the
+// view instead, as if it were part of the page; a tap still selects it (to unlock it) and makes it do its thing.
+function toggleLock(id) {
+  const it = itemById(id);
+  if (!it) return;
+  change(() => { if (it.locked) delete it.locked; else it.locked = true; });
+  sfx(it.locked ? 'lockOn' : 'lockOff');
+  toast(it.locked ? 'Locked in place. Tap the lock again to move it' : 'Unlocked: it moves again');
+}
 
 /* ----- putting stickers into furniture, taking them out, and standing them on shelves ----- */
 // A frame in this scene whose opening is under the sticker's centre and big enough to take it (not one riding along
@@ -4900,8 +5490,8 @@ function takeOut(it, riders) {
   if (k === 0) return false;
   const sc = rootScene(), portal = portalItemOf(k), [mx, my] = ap(localMatrix(it), ...itemMiddle(it));
   if (!portal || openingContains(frameOf(portal).shape, sc.w, sc.h, mx, my)) return false;
-  const parent = scene(path[k - 1].s);
-  moveItemTo(it, sc, parent, mul(localMatrix(portal), sim(it.x, it.y, it.rot, itemScale(it))), parent.items.indexOf(portal) + 1);
+  const parent = scene(path[k - 1].s), at = isRoom(parent) || onTheFloor(it) ? parent.items.indexOf(portal) + 1 : null; // (null: on top)
+  moveItemTo(it, sc, parent, mul(localMatrix(portal), sim(it.x, it.y, it.rot, itemScale(it))), at);
   settleOnSurface(it, parent, cam.z / itemScale(portal));
   roomPlace(parent, it, cam.z / itemScale(portal));
   bringRiders(sc, parent, it, riders);
@@ -4920,9 +5510,9 @@ function surfacesIn(sc, except) {
     else if (o.t === 'p' && FRAMES[o.f] && FRAMES[o.f].tops && scene(o.s)) { const c = scene(o.s); list = FRAMES[o.f].tops(c.w, c.h, FRAMES[o.f].border * c.w); }
     if (!list) continue;
     const L = localMatrix(o, VM), m = o.t === 'a' && (o.tilt || o.spin) ? pictureMap(o) : null, fx = o.flip ? -1 : 1; // m: a table lying on its back
-    for (const [a, b, ya, yb = ya] of list) { // a line from (a, ya) to (b, yb): level, or slanting along furniture drawn at an angle
+    for (const [a, b, ya, yb = ya, gap] of list) { // a line from (a, ya) to (b, yb): level, or slanting along furniture drawn at an angle
       const p = ap(L, ...(m ? m(a, ya) : [fx * a, ya])), q = ap(L, ...(m ? m(b, yb) : [fx * b, yb])), [l, r] = p[0] <= q[0] ? [p, q] : [q, p];
-      out.push({ x0: l[0], x1: r[0], y0: l[1], y1: r[1], y: (l[1] + r[1]) / 2, owner: o });
+      out.push({ x0: l[0], x1: r[0], y0: l[1], y1: r[1], y: (l[1] + r[1]) / 2, owner: o, room: gap ? gap * itemScale(o) : 0 }); // room: how tall a thing fits, on a shelf with another above
     }
   }
   return out;
@@ -4942,12 +5532,23 @@ function settleOnSurface(it, sc, zoom) {
   }
   if (!best) return false;
   it.y += best.d; it.rot = 0;
+  fitShelf(it, best.f);
+  if (best.f.room && isoDoor(best.f.owner)) best.f.owner.open = true; // put in the fridge: it stays open, to see it there
   if (isRoom(sc)) return true; // a room keeps its own order, front to back (see roomPlace)
   // Just placed on a shelf or table: it goes on top, like a sticker pressed down last.
   const i = sc.items.indexOf(it), o = best.f.owner;
   if (i >= 0 && it.t !== 'p') { sc.items.splice(i, 1); sc.items.push(it); }
   else if (i >= 0 && o && sc.items.indexOf(o) > i) { sc.items.splice(i, 1); sc.items.splice(sc.items.indexOf(o) + 1, 0, it); }
   return true;
+}
+// Put on a shelf with another just above it, a sticker too tall to fit under that one shrinks until it does, feet kept
+// on the shelf: putting things away in the pantry or the fridge, they find their size.
+function fitShelf(it, f) {
+  if (!f.room) return;
+  const e = itemExtent(it), tall = (stickerBottom(it) - e[1]) * itemScale(it), x = it.x;
+  if (tall <= f.room * 0.96) return;
+  it.size *= f.room * 0.92 / tall;
+  it.y = lineY(f, x) - stickerBottom(it) * itemScale(it);
 }
 // Where a dropped sticker went, as the name of the sound it makes: into furniture, out of it, onto a shelf, or just down.
 function settleAfterDrag(g) {
@@ -4958,13 +5559,22 @@ function settleAfterDrag(g) {
   else if (target && target !== it) { putInto(it, target, riders); how = 'into'; }
   else if (takeOut(it, riders)) how = 'out';
   else {
-    clampItem(it); roomSnap(sc, it); wallSnap(sc, it); how = settleOnSurface(it, sc, cam.z) ? 'tock' : 'pat'; roomPlace(sc, it);
+    clampItem(it); roomSnap(sc, it); wallSnap(sc, it); how = settleOnSurface(it, sc, cam.z) ? 'tock' : 'pat'; roomPlace(sc, it); toFront(sc, it, riders);
     carry(sc, it, riders);
     const def = riders.length && !rideTipShown && defOf(it);
     if (def) { rideTipShown = true; toast('Everything on the ' + (def.name || def.label).toLowerCase() + ' comes with it'); }
   }
   peekDoors(null);
   return how;
+}
+// A sticker that has been moved comes out on top of everything, like one peeled off and pressed down again (Forward and
+// Back then put it among the others), with whatever stands on it just in front of it. Not in a room, which keeps its
+// own order front to back, and not a rug, which stays down on the floor.
+function onTheFloor(it) { return it.t === 'a' && !!ART[it.a] && !!ART[it.a].floor; }
+function toFront(sc, it, riders) {
+  if (isRoom(sc) || onTheFloor(it) || !sc.items.includes(it)) return;
+  const on = (riders || []).map(r => findItem(sc, r.id)).filter(Boolean);
+  sc.items = [...sc.items.filter(o => o !== it && !on.includes(o)), it, ...sc.items.filter(o => on.includes(o))];
 }
 
 /* ----- what stands on a table goes where the table goes ----- */
@@ -5049,6 +5659,8 @@ function onDown(e) {
     if (curl) gesture = { ...base, mode: 'curl', dir: curl };
     else if (hit && hit.handle) gesture = { ...base, mode: 'handle', id: hit.item.id, before: snapshot(), riders: ridersOf(rootScene(), hit.item), ...handleGrip(hit.item) };
     else if (hit && hit.tilt) gesture = { ...base, mode: 'tilt', id: hit.item.id, before: snapshot(), ...tiltGrip(hit.item, e.clientX, e.clientY) };
+    else if (hit && hit.lock) gesture = { ...base, mode: 'lock', id: hit.item.id };
+    else if (hit && hit.item.locked) gesture = { ...base, mode: 'pan', canTurn: atRest(), held: hit.item.id }; // it stays put: the drag moves the view
     else if (hit) { select(hit.item); gesture = { ...base, mode: 'drag', id: hit.item.id, before: snapshot(), riders: ridersOf(rootScene(), hit.item) }; lift(gesture); }
     else gesture = { ...base, mode: 'pan', canTurn: atRest() };
     panHist = [{ t: e.timeStamp, x: e.clientX, y: e.clientY }];
@@ -5086,6 +5698,7 @@ function onMove(e) {
   }
   if (!g.moved && far > 6) { g.moved = true; if (g.mode === 'drag') sfx('peel'); }
   if (!g.moved) return;
+  if (g.held && !lockTipShown) { lockTipShown = true; toast('That one’s locked. Tap it, then its lock, to move it', 3400); }
   if (g.mode === 'pan') {
     applyScreen(mat(1, 0, 0, 1, p.x - px, p.y - py));
     panHist.push({ t: e.timeStamp, x: p.x, y: p.y });
@@ -5125,10 +5738,14 @@ function onUp(e) {
   if (pointers.size === 0) {
     gesture = null; lift(null);
     if (g) {
-      if (!g.moved && g.mode !== 'pinch' && g.mode !== 'twist' && e.type === 'pointerup') handleTap(e.clientX, e.clientY, e.timeStamp, g.mode === 'pan' ? null : g.id, g.mode === 'drag');
+      if (!g.moved && g.mode === 'lock') { if (e.type === 'pointerup') toggleLock(g.id); }
+      else if (!g.moved && g.mode !== 'pinch' && g.mode !== 'twist' && e.type === 'pointerup') handleTap(e.clientX, e.clientY, e.timeStamp, g.mode === 'pan' ? g.held || null : g.id, g.mode === 'drag' || !!g.held);
       if (g.moved && (g.mode === 'drag' || g.mode === 'handle')) tidySpin(g.id);
       if (g.moved && g.mode === 'drag') { const how = settleAfterDrag(g); if (how) sfx(how); }
-      else if (g.moved && (g.mode === 'handle' || g.mode === 'twist') && itemById(g.id)) { const it = itemById(g.id); roomPlace(rootScene(), it); carry(rootScene(), it, g.riders); }
+      else if (g.moved && (g.mode === 'handle' || g.mode === 'twist') && itemById(g.id)) {
+        const it = itemById(g.id);
+        roomPlace(rootScene(), it); if (g.mode === 'twist') toFront(rootScene(), it, g.riders); carry(rootScene(), it, g.riders);
+      }
       if (g.moved && (g.mode === 'drag' || g.mode === 'handle' || g.mode === 'twist' || g.mode === 'tilt')) { commitUndo(g.before); syncSelbar(); }
       if (g.moved && g.mode === 'pan') {
         const { vx, vy } = flickSpeed(e.timeStamp);
@@ -5160,7 +5777,7 @@ function handleTap(x, y, t, id, onBody) {
     if (target) { jiggles.delete(target.id); keepDoorsOpen(target); diveInto(target); return; }
   }
   if (!it) select(null);
-  else if (onBody) tapItem(it);
+  else { if (it.locked) select(it); if (onBody) tapItem(it); }
 }
 
 function onWheel(e) {
@@ -5207,7 +5824,7 @@ const TAP_GROUPS = [
   ['🐟 🐠 🐡 🐙 🦑 🦀 🦞 🐢 🦭 🐬 🐳 🐋 🦈 🧜‍♀️', re('swim', 'bubbles', 'bubbles')], ['🦖 🦕 🦁 🐯 🐲', re('hop', null, 'roar')],
   ['🐘', re('squish', null, 'trumpet')], ['🦄', re('hop', 'sparkles', 'magic')], ['🦌 🦓 🦒 🐴 🐎', re('hop', null, 'boing')], ['🦔', re('squish', 'hearts', 'squeak')],
   ['🫖', re('shake', 'steam', 'whistle')], ['☕ 🍵', re('jiggle', 'steam', 'sip')], ['🍳 🥘 🍲 🍜', re('shake', 'steam', 'sizzle')],
-  ['🍎 🍏 🍌 🍋 🍓 🍇 🥕 🥦 🍅 🥔 🌽 🥒 🍞 🥐 🥖 🧀 🍪 🍰 🧁 🍩 🍫 🍕 🍔 🌮 🍣 🥞 🧇 🍉 🍑 🍒 🥑 🥨 🧈 🥚 🍗 🥗 🥪 🥜 🌰 🍐 🥬 🧅 🥧 🍮', re('jiggle', 'crumbs', 'munch')],
+  ['🍎 🍏 🍌 🍋 🍓 🍇 🥕 🥦 🍅 🥔 🌽 🥒 🍞 🥐 🥖 🧀 🍪 🍰 🧁 🍩 🍫 🍕 🍔 🌮 🍣 🥞 🧇 🍉 🍑 🍒 🥑 🥨 🧈 🥚 🍗 🥗 🥪 🥜 🌰 🍐 🥬 🧅 🧄 🫑 🥧 🍮', re('jiggle', 'crumbs', 'munch')],
   ['🍬 🍭 🍦 🍨', re('jiggle', 'sparkles', 'munch')], ['🎂', re('jiggle', 'confetti', 'party')], ['🥛 🧃 🥤 🧋 🍶', re('jiggle', 'bubbles', 'slurp')],
   ['🫙 🍯 🥫 🧂 🍽️ 🥣 🥄 🍴 🏺', re('jiggle', null, 'clink')], ['🕰️ ⌚', re('wiggle', null, 'ticktock')], ['⏰', re('shake', null, 'ring')],
   ['📚 📖 📒 📕 🧾', re('wiggle', null, 'rustle')], ['🖼️ 🪑', re('jiggle', null, 'tock')], ['🌷 🌸 🌼 🌻 🌹 🌺 💐 🪷', re('sway', 'sparkles', 'chime')],
@@ -5229,7 +5846,9 @@ const TAP_GROUPS = [
   ['🔥', re('shake', 'sparkles', 'crackle')], ['💧', re('hop', 'drops', 'plink')], ['🏡 🏠 🛖 🏰 🏯 ⛺ 🏘️', re('jiggle', null, 'knocks')], ['👻 🎃', re('float', null, 'ghost')],
   ['💌 💖 💕 ❤️ 💗 💓 💝 🩷', re('pulse', 'hearts', 'chime')], ['🏖️ ⛱️ 🏝️ 🐚 🪸', re('sway', null, 'wave')], ['🎠 🎡 🎢', re('pulse', 'sparkles', 'arp')],
   ['🛒', re('chug', null, 'clack')], ['🛍️ 🧳', re('wiggle', null, 'swish')], ['🏷️', re('wiggle', null, 'blip')], ['💰 💵 💳', re('jiggle', 'coins', 'kaching')],
-  ['🧴 🧼 🧽 🛁', re('squish', 'bubbles', 'bubbles')], ['🧻 🚩', re('sway', null, 'swish')], ['🪨', re('jiggle', null, 'thunk')], ['🔔 🛎️', re('shake', null, 'bell')],
+  ['🧴 🧼 🧽 🛁 🪥 🫧', re('squish', 'bubbles', 'bubbles')], ['🚽', re('shake', 'drops', 'flush')], ['🚿', re('jiggle', 'drops', 'rain')], ['🧹', re('sway', null, 'swish')], ['🪣', re('jiggle', 'drops', 'water')], ['🧺', re('squish', null, 'fwump')],
+  ['🧊', re('jiggle', null, 'clink')], ['🥢', re('jiggle', null, 'clack')], ['🎧', re('jiggle', 'notes', 'melody')], ['💻', re('jiggle', null, 'blips')],
+  ['🛋️', re('squish', null, 'fwump')], ['🧻 🚩', re('sway', null, 'swish')], ['🪨', re('jiggle', null, 'thunk')], ['🔔 🛎️', re('shake', null, 'bell')],
   ['📷 📸', re('pulse', null, 'click')],
 ];
 const TAP_EMOJI = {};
@@ -5241,6 +5860,11 @@ const TAP_ART = {
   bed: re('squish', 'zzz', 'lullaby'), sinkCounter: re('jiggle', 'drops', 'water'), register: re('jiggle', 'coins', 'kaching'),
   plushBunny: re('squish', 'hearts', 'squeaky'), plushElephant: re('squish', 'hearts', 'trumpet'), plushDino: re('squish', 'hearts', 'squeaky'),
   blocks: re('jiggle', null, 'clack'), pip: re('hop2', 'hearts', 'squeak'),
+  isoBed: re('squish', 'zzz', 'lullaby'), isoSofa: seat, isoArmchair: seat, isoRug: seat, isoBookcase: re('wiggle', null, 'tock'),
+  isoDresser: wood, isoNightstand: wood, isoShelf: wood, isoWallCupboard: wood, isoPantry: wood, isoSideboard: wood, isoTable: wood, isoChair: wood,
+  isoCoffeeTable: wood, isoCounter: wood, isoShopShelf: re('jiggle', null, 'kaching'), isoSink: re('jiggle', 'drops', 'water'),
+  isoWasher: re('shake', 'bubbles', 'bubbles'), isoBath: re('squish', 'bubbles', 'splash'), isoToilet: re('shake', 'drops', 'flush'),
+  isoBasin: re('jiggle', 'drops', 'water'), isoTowelRail: re('sway', null, 'swish'), isoBathMat: seat,
 };
 const TAP_FRAME = {
   globe: re('shake', 'snow', 'jingle'), door: re('pulse', 'sparkles', 'magic'), frame: re('wiggle', null, 'tock'), window: re('pulse', 'sparkles', 'chime'),
@@ -5253,6 +5877,7 @@ const PLANET_TAP = re('spin', 'sparkles', 'chime'), PHOTO_TAP = re('jiggle', 'he
 const LIGHTS = {
   floorLamp: [0, -0.8, 2.3, '255,222,150'], tableLamp: [0, -0.32, 2.5, '255,222,150'], stove: [0, -0.5, 0.75, '255,170,90'],
   '💡': [0, -0.12, 2.3, '255,230,140'], '🕯️': [0, -0.34, 2.5, '255,196,110'],
+  isoStove: [...ART.isoStove.geo.P(0.375, 0.3, 1.0), 0.75, '255,170,90'], // over the burners
 };
 function lightOf(it) { return it.t === 'a' ? LIGHTS[it.a] : it.t === 'e' ? LIGHTS[it.e] : null; }
 function reactionOf(it) {
@@ -5431,7 +6056,13 @@ const doorSwing = new Map(); // item id -> { from, t0, dur, ease } while its doo
 let doorPeek = null;         // furniture whose doors open just while a sticker is dragged over it
 let lastDoorTap = null;      // { id, t, closed }: so a double-tap that steps inside doesn't shut the doors first
 
-function hasDoors(it) { return it.t === 'p' && !!(FRAMES[it.f] && FRAMES[it.f].doors); }
+function hasDoors(it) { return (it.t === 'p' && !!(FRAMES[it.f] && FRAMES[it.f].doors)) || isoDoor(it); }
+// Furniture drawn at a room's angle with a door of its own (the fridge): its door shuts over what's on the shelves
+// inside, and they're hidden until it opens (see insidesIn).
+function isoDoor(it) { return it.t === 'a' && !!ART[it.a] && !!ART[it.a].door; }
+// How far its door is open, in steps (its picture is kept for each step: see artBase).
+const DOOR_STEPS = 12;
+function doorStep(it) { return Math.round(clamp(shownDoor(it), 0, 1) * DOOR_STEPS); }
 function doorAim(it) { return (it.open || doorPeek === it.id) && !doorLocked(it) ? 1 : 0; } // an advent door stays shut before its day
 // How open the doors are right now (0 shut, 1 open), part of the way there while they swing.
 function shownDoor(it) {
@@ -5456,7 +6087,7 @@ function swingDoors(it, from, dur = 460) {
   requestRender();
 }
 function doorSound(it, opening) {
-  const kind = FRAMES[it.f].doors; // 'wood', 'fridge', or 'advent' (a little card door)
+  const kind = it.t === 'a' ? ART[it.a].door : FRAMES[it.f].doors; // 'wood', 'fridge', or 'advent' (a little card door)
   sfx(opening ? (kind === 'fridge' ? 'fridgeOpen' : kind === 'advent' ? 'doorlet' : 'creak') : (kind === 'fridge' ? 'fridgeShut' : kind === 'advent' ? 'flap' : 'shut'));
 }
 function toggleDoors(it) {
@@ -5520,6 +6151,54 @@ function woodFace(c, y0, y1, D, col, px, mirror) {
     knob(c, kx, ky, D * 0.028, '#d9b25f');
   };
 }
+
+/* ----- furniture with a door of its own, drawn at a room's angle (the fridge) ----- */
+// What's inside: what stands on its shelves (the lines with room above them), and what stands on those. Returns
+// { of: item id -> the furniture it's in, by: furniture id -> what's in it, in drawing order }, or null if nothing is in
+// any. The sticker being moved isn't in anything: it's drawn over everything.
+function insidesIn(sc) {
+  if (!sc.items.some(isoDoor)) return null;
+  const lines = surfacesIn(sc), of = new Map();
+  for (let more = true; more;) {
+    more = false;
+    for (const o of sc.items) {
+      if (of.has(o.id) || o.id === liftedId || o.wall || isoDoor(o) || onTheFloor(o) || (o.t === 'p' && !scene(o.s))) continue;
+      const [fx, fy] = feetOf(o), e = itemExtent(o), tol = Math.max(0.005 * sc.w, 0.03 * (e[3] - e[1]) * itemScale(o));
+      let best = null, bd = tol;
+      for (const f of lines) {
+        if (!f.owner || f.owner === o || fx < f.x0 - tol || fx > f.x1 + tol) continue;
+        const d = Math.abs(lineY(f, fx) - fy);
+        if (d <= bd) { best = f; bd = d; }
+      }
+      const by = best && (isoDoor(best.owner) ? (best.room ? best.owner : null) : of.get(best.owner.id));
+      if (by) { of.set(o.id, by); more = true; }
+    }
+  }
+  if (!of.size) return null;
+  const by = new Map();
+  for (const o of sc.items) { const f = of.get(o.id); if (f) { if (!by.has(f.id)) by.set(f.id, []); by.get(f.id).push(o); } }
+  return { of, by };
+}
+// Hidden away: in furniture whose door is shut (not even part of the way open).
+function shutAway(ins, it) { const f = ins && ins.of.get(it.id); return !!f && doorStep(f) === 0; }
+// Is the point (x, y) of the scene over the front of furniture with a door, where things go in? (`doorway` in its ART
+// entry: the front's y, and how far it runs along it and up it, in the units of its box.)
+function overDoorway(o, x, y) {
+  const d = ART[o.a], G = d.geo, w = d.doorway, m = 0.04;
+  let [u, v] = ap(inv(localMatrix(o)), x, y);
+  if (o.flip) u = -u;
+  const [px, py] = G.P(0, 0, 0), X = w.y - (u - px) / (ISO_C * G.k), Z = (py + (X + w.y) * ISO_S * G.k - v) / G.k;
+  return X >= w.x[0] - m && X <= w.x[1] + m && Z >= w.z[0] - m && Z <= w.z[1] + m;
+}
+// A sticker dragged over the front of the fridge opens it, to be put in (see peekDoors).
+function doorwayUnder(sc, it, riders) {
+  const [x, y] = ap(localMatrix(it), ...itemMiddle(it)), skip = new Set((riders || []).map(r => r.id));
+  for (let i = sc.items.length - 1; i >= 0; i--) {
+    const o = sc.items[i];
+    if (o !== it && !skip.has(o.id) && isoDoor(o) && !o.wall && overDoorway(o, x, y)) return o.id;
+  }
+  return null;
+}
 /* ---------- interface: drawer, backdrops, menu, breadcrumbs, undo ---------- */
 const $ = id => document.getElementById(id);
 function el(tag, attrs, text) {
@@ -5534,10 +6213,25 @@ const PHOTO_ICON = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="
 const PLUS_ICON = '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
 
 // Drawer contents. 'a:sofa' is a drawn sticker, 'f:fridge' is furniture or a planet that opens into a scene, anything else is an emoji.
+// The 3D room tab comes in parts, each under its heading: furniture drawn at the room's angle (iso), then the flat ones
+// that work in a room too: furniture you put things inside, windows, and little things to fill the shelves with.
+const ROOM3D_PARTS = [
+  ['Kitchen', ['a:isoFridge', 'a:isoCounter', 'a:isoSink', 'a:isoStove', 'a:isoWallCupboard', 'a:isoPantry', 'a:isoTable', 'a:isoChair', 'a:isoWasher']],
+  ['Sitting room', ['a:isoSofa', 'a:isoArmchair', 'a:isoCoffeeTable', 'a:isoSideboard', 'a:isoBookcase', 'a:isoShelf', 'a:isoRug', 'a:floorLamp', 'a:tableLamp']],
+  ['Bedroom', ['a:isoBed', 'a:isoNightstand', 'a:isoDresser', 'f:wardrobe', 'f:dollhouse']],
+  ['Bathroom', ['a:isoBath', 'a:isoToilet', 'a:isoBasin', 'a:isoTowelRail', 'a:isoBathMat', '🦆', '🛁', '🚿', '🚽']],
+  ['Shop', ['a:isoShopShelf', 'a:register', '🛒', '🛍️', '🏷️', '💰', '🧾', '💳']],
+  ['Doors to open and put things inside', ['f:fridge', 'f:cupboard', 'f:cabinet', 'f:display', 'f:gift', 'f:door', 'f:roomBox']],
+  ['Windows and walls', ['f:archWindow', 'f:curtains', 'f:frame', 'f:mirror', '🕰️', '🖼️', '🪞', '⏰']],
+  ['Food', ['🍎', '🍌', '🍋', '🍓', '🍇', '🍉', '🍒', '🍑', '🥕', '🥦', '🍅', '🥔', '🌽', '🥒', '🥬', '🧅', '🧄', '🫑', '🍞', '🥐', '🥖', '🧀', '🥚', '🥛', '🧈',
+    '🍗', '🥗', '🍕', '🥪', '🍰', '🎂', '🧁', '🍪', '🍩', '🍫', '🍬', '🍭', '🍦', '🧊', '🍯', '🫙', '🥫', '🧃', '🥤']],
+  ['In the kitchen', ['🫖', '☕', '🍵', '🍽️', '🥣', '🍳', '🥘', '🍲', '🧂', '🥄', '🍴', '🥢']],
+  ['Cleaning and washing', ['🧽', '🧴', '🧼', '🫧', '🧹', '🪣', '🧺', '🧻', '🪥', '🧤']],
+  ['Little things', ['a:books', 'a:plushBunny', '🪴', '🌿', '💐', '🌷', '🧸', '🐈', '🐕', '🐇', '🕯️', '📚', '🎀', '🧶', '👗', '👒', '🎧', '💻', '📺', '📻', '📷', '🎨',
+    '🪑', '🛋️', '🎹', '💡']],
+];
 const STICKERS = {
-  room3d: ['f:roomBox', 'a:isoBed', 'a:isoSofa', 'a:isoBookcase', 'a:isoDresser', 'a:isoNightstand', 'a:isoShelf', 'a:isoRug', 'f:archWindow', 'f:curtains', 'f:frame', 'f:mirror',
-    'f:door', 'f:wardrobe', 'f:dollhouse', 'a:floorLamp', 'a:tableLamp', 'a:books', 'a:plushBunny', '🪴', '🌿', '💐', '🌷', '🕰️', '🖼️', '🪞', '🧸', '🐈', '🐕', '🐇',
-    '☕', '🫖', '🕯️', '📚', '🎀', '🧶', '👗', '👒', '🎧', '💻', '📷', '🎨', '🪑', '🛋️', '🎹', '🛁'],
+  room3d: ROOM3D_PARTS.flatMap(p => p[1]),
   living: ['a:sofa', 'a:armchair', 'a:coffeeTable', 'a:sideTable', 'a:floorLamp', 'a:tableLamp', 'a:bookcase', 'a:wallShelf', 'a:rug', 'a:books',
     'f:cabinet', 'f:curtains', 'f:frame', 'f:tv', 'f:mirror', '🪴', '🕰️', '📚', '📖', '🖼️', '🕯️', '💐', '🏺', '☕', '🫖', '🐈', '🐕', '🧶', '📺', '📻', '🎹', '🪑', '💡'],
   bedroom: ['a:bed', 'a:nightstand', 'a:dresser', 'f:wardrobe', 'f:dollhouse', 'a:tableLamp', 'a:rug', 'a:wallShelf', 'f:curtains', 'f:mirror',
@@ -5704,6 +6398,7 @@ function act(name) {
         const copy = JSON.parse(JSON.stringify(o));
         copy.id = newId('i');
         delete copy.gid; // only the present itself tells its sender it was unwrapped
+        delete copy.locked; // a copy is there to be put somewhere
         if (o.t === 'p' && !o.link) copy.s = duplicateWorld(o.s);
         pops.set(copy.id, performance.now());
         return copy;
@@ -5741,10 +6436,11 @@ function act(name) {
     if (to && !tiltTipShown) { tiltTipShown = true; toast('Tilt it with the arrows, turn it with the corner'); }
     return;
   }
-  if (name === 'front' || name === 'back') { // it goes past the next thing that isn't standing on it, taking its riders
+  if (name === 'front' || name === 'back') { // it goes past the next thing it overlaps that isn't standing on it, taking its riders
     const piece = new Set([it.id, ...riders.map(r => r.id)]), d = name === 'front' ? 1 : -1;
+    const box = boxOf(sc.items.filter(o => piece.has(o.id))); // (things it doesn't touch it passes without a press, so each press shows)
     let j = sc.items.indexOf(it) + d;
-    while (j >= 0 && j < sc.items.length && piece.has(sc.items[j].id)) j += d;
+    while (j >= 0 && j < sc.items.length && (piece.has(sc.items[j].id) || !overlaps(box, boxOf([sc.items[j]])))) j += d;
     if (j < 0 || j >= sc.items.length) { toast(name === 'front' ? 'Already on top' : 'Already at the back'); return; }
     const past = sc.items[j];
     change(() => {
@@ -5755,6 +6451,21 @@ function act(name) {
     sfx('blip');
   }
 }
+
+// The box round some items, in their scene's units, as you see them now; and whether two such boxes overlap.
+function boxOf(list) {
+  const M = camMatrix(), b = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const o of list) {
+    if (o.t === 'p' && !scene(o.s)) continue;
+    const L = localMatrix(o, M), e = itemExtent(o);
+    for (const [u, v] of [[e[0], e[1]], [e[2], e[1]], [e[0], e[3]], [e[2], e[3]]]) {
+      const [x, y] = ap(L, u, v);
+      b[0] = Math.min(b[0], x); b[1] = Math.min(b[1], y); b[2] = Math.max(b[2], x); b[3] = Math.max(b[3], y);
+    }
+  }
+  return b;
+}
+function overlaps(a, b) { return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]; }
 
 /* ----- breadcrumbs: the page you're on, then the worlds you've stepped into ----- */
 function renderCrumbs() {
@@ -5843,9 +6554,12 @@ function renderTray(tab) {
   body.textContent = ''; body.scrollTop = 0;
   if (STICKERS[tab]) {
     if (STICKERS[tab].some(s => s.startsWith('f:'))) body.append(el('p', { class: 'hint' }, 'Things with a little door badge open up: put stickers inside them, or double-tap to step in.'));
-    const grid = el('div', { class: 'stk-grid' });
-    for (const spec of STICKERS[tab]) grid.append(stickerButton(spec));
-    body.append(grid);
+    for (const [title, list] of tab === 'room3d' ? ROOM3D_PARTS : [[null, STICKERS[tab]]]) {
+      if (title) body.append(el('h3', { class: 'tray-sub' }, title));
+      const grid = el('div', { class: 'stk-grid' });
+      for (const spec of list) grid.append(stickerButton(spec));
+      body.append(grid);
+    }
   } else if (tab === 'worlds') {
     body.append(el('p', { class: 'hint' }, 'Each of these opens onto a brand-new scene. Place one, then double-tap it to step inside and decorate.'));
     const grid = el('div', { class: 'frame-grid' });
@@ -5968,10 +6682,7 @@ async function savePicture() {
 // Outside Claude: the share sheet where there is one (Save Image puts it in Photos), otherwise a download. The picture is
 // made without waiting, since the share sheet only opens straight from a tap.
 function sharePicture() {
-  const url = stage.toDataURL('image/png'), bin = atob(url.slice(url.indexOf(',') + 1)), bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  requestRender();
-  const file = new File([bytes], 'sticker-world.png', { type: 'image/png' });
+  const file = pictureFile();
   const download = () => {
     const a = el('a', { href: URL.createObjectURL(file), download: file.name });
     document.body.append(a); a.click(); a.remove();
@@ -5981,6 +6692,13 @@ function sharePicture() {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({ files: [file] }).catch(err => { if (!err || err.name !== 'AbortError') download(); });
   } else download();
+}
+// The picture just drawn on the stage (with `exporting` on: no selection), as a PNG file.
+function pictureFile() {
+  const url = stage.toDataURL('image/png'), bin = atob(url.slice(url.indexOf(',') + 1)), bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  requestRender();
+  return new File([bytes], 'sticker-world.png', { type: 'image/png' });
 }
 function showWelcome() { $('welcome').hidden = false; $('welcomeGo').focus(); }
 
@@ -6006,7 +6724,7 @@ function wireUI() {
   $('welcomeGo').onclick = () => { $('welcome').hidden = true; try { localStorage.setItem('sw-welcomed', '3'); } catch (e) { /* storage blocked */ } };
   $('fileInput').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; closeSheets(); if (f) importImage(f); });
   document.addEventListener('paste', e => {
-    if (e.target && e.target.closest && e.target.closest('input')) return;
+    if (e.target && e.target.closest && e.target.closest('input, textarea')) return;
     const items = e.clipboardData ? [...e.clipboardData.items] : [], text = e.clipboardData ? e.clipboardData.getData('text') : '';
     const present = findPresentLink(text); // a present sent by message (share.js)
     if (present) { e.preventDefault(); closeSheets(); openPresentLink(present, text); return; }
@@ -6021,7 +6739,30 @@ function wireUI() {
   wireShare();
 }
 /* ---------- the pages sheet: the book's contents, plus adding, naming, moving and removing pages ---------- */
-const NEW_PAGE_BGS = [...ROOM_BGS, 'roomHouse', 'living', 'bedroom', 'kitchen', 'shop', 'universe', 'meadow', 'beach', 'snow', 'garden', 'forest', 'ocean', 'night', 'candy', 'mars', 'moon', 'clouds', 'room', 'paper'];
+const NEW_PAGE_BGS = ['living', 'bedroom', 'kitchen', 'shop', 'universe', 'meadow', 'beach', 'snow', 'garden', 'forest', 'ocean', 'night', 'candy', 'mars', 'moon', 'clouds', 'room', 'paper'];
+// The furnished 3D rooms a new page can be, each in a colour that suits it (Backdrop changes it after). Each is made
+// ahead in a little book of its own (roomDraft), so its tile shows it just as it will be, and moved into the book
+// when it's picked.
+const ROOM_PAGES = [['kitchen', 'roomMint'], ['lounge', 'roomPink'], ['bedroom', 'roomSky'], ['bathroom', 'roomAqua'], ['playroom', 'roomLemon'], ['shop', 'roomLemon']];
+const roomDrafts = new Map(); // kind -> { book, id }
+function roomDraft(kind, bg) {
+  if (roomDrafts.has(kind)) return roomDrafts.get(kind);
+  const id = newId('s'), book = { v: 2, title: '', pages: ['-', id], scenes: {}, photos: {} }; // ('-': it isn't the cover)
+  book.scenes[id] = { id, name: ROOM_KINDS[kind], bg, w: 1, h: PAGE_H, items: [] };
+  inBook(book, () => stockRoom(book.scenes[id], kind));
+  const d = { book, id };
+  roomDrafts.set(kind, d);
+  return d;
+}
+function addRoomPage(kind, bg) {
+  const d = roomDraft(kind, bg), at = bookPage + 1, ids = [];
+  inBook(d.book, () => ids.push(...ownedScenes(d.id)));
+  roomDrafts.delete(kind); // a different one next time
+  change(() => { for (const id of ids) doc.scenes[id] = d.book.scenes[id]; doc.pages.splice(at, 0, d.id); });
+  closeSheets();
+  if (beginTurn(1)) animateTurn(1, 760);
+  else goToPage(at);
+}
 
 function openPages() { openSheet('pagesSheet'); renderPages(); }
 
@@ -6069,36 +6810,39 @@ function renderPages() {
 
 function openNewPage() {
   openSheet('newPageSheet');
-  const grid = $('newPageGrid');
+  const grid = $('newPageGrid'), d = Math.min(window.devicePixelRatio || 1, 2), later = [];
   grid.textContent = '';
-  const cal = el('button', { class: 'bg-tile', type: 'button' }), cv = el('canvas', { class: 'tall' }), d = Math.min(window.devicePixelRatio || 1, 2);
-  cv.width = 72 * d; cv.height = 96 * d;
-  const c = cv.getContext('2d');
-  c.setTransform(72 * d, 0, 0, 72 * d, 36 * d, 48 * d);
-  adventPreview(c);
-  cal.append(cv, el('span', null, 'Advent calendar'));
-  cal.onclick = addAdventPage;
-  grid.append(cal);
-  for (const bg of NEW_PAGE_BGS) {
-    const b = el('button', { class: 'bg-tile', type: 'button' });
-    const cv = el('canvas', { class: 'tall' }), d = Math.min(window.devicePixelRatio || 1, 2);
+  const tile = (label, draw, onclick) => {
+    const b = el('button', { class: 'bg-tile', type: 'button' }), cv = el('canvas', { class: 'tall' });
     cv.width = 72 * d; cv.height = 96 * d;
     const c = cv.getContext('2d');
     c.setTransform(72 * d, 0, 0, 72 * d, 36 * d, 48 * d);
-    drawBackdrop(c, { id: 'np-' + bg, bg, w: 1, h: PAGE_H }, 200);
-    b.append(cv, el('span', null, bg === 'paper' ? 'Blank page' : BACKDROPS[bg].name));
-    b.onclick = () => addPage(bg);
+    draw(c, cv);
+    b.append(cv, el('span', null, label));
+    b.onclick = onclick;
     grid.append(b);
+  };
+  const backdrop = bg => c => drawBackdrop(c, { id: 'np-' + bg, bg, w: 1, h: PAGE_H }, 200);
+  grid.append(el('h3', { class: 'grid-head' }, '3D rooms'));
+  for (const [kind, bg] of ROOM_PAGES) { // the bare room at once, then the room as it'll be, one tile at a time
+    tile(ROOM_KINDS[kind], (c, cv) => { backdrop(bg)(c); later.push(() => inBook(roomDraft(kind, bg).book, () => drawThumb(cv, roomDraft(kind, bg).id, 72, 96))); }, () => addRoomPage(kind, bg));
   }
+  tile('Little house', backdrop('roomHouse'), () => addPage('roomHouse'));
+  for (const bg of ROOM_BGS) tile('Empty ' + BACKDROPS[bg].name.toLowerCase(), backdrop(bg), () => addPage(bg));
+  grid.append(el('h3', { class: 'grid-head' }, 'Flat pages'));
+  tile('Advent calendar', c => adventPreview(c), addAdventPage);
+  for (const bg of NEW_PAGE_BGS) tile(bg === 'paper' ? 'Blank page' : BACKDROPS[bg].name, backdrop(bg), () => addPage(bg));
+  const next = () => { if (openSheetId === 'newPageSheet' && later.length) { later.shift()(); setTimeout(next, 0); } };
+  setTimeout(next, 60);
 }
 
+// A new page with this backdrop. A room starts empty (the furnished ones are addRoomPage); the house has its three rooms.
 function addPage(bg) {
   const id = newId('s'), at = bookPage + 1;
   change(() => {
     doc.scenes[id] = { id, name: bg === 'paper' ? 'New page' : BACKDROPS[bg].name, bg, w: 1, h: PAGE_H, items: [] };
     doc.pages.splice(at, 0, id);
-    if (isRoom(doc.scenes[id])) inBook(doc, () => stockRoom(doc.scenes[id])); // a room comes with a few things to start
-    else if (bg === 'roomHouse') inBook(doc, () => stockHouse(doc.scenes[id])); // and the house with its three rooms
+    if (bg === 'roomHouse') inBook(doc, () => stockHouse(doc.scenes[id]));
   });
   closeSheets();
   if (beginTurn(1)) animateTurn(1, 760);
@@ -6578,11 +7322,12 @@ function hidePip() {
 // Things in the air: she can't stand beside those.
 const FLYING = new Set('☁️ ⛅ ☀️ 🌙 🌕 ⭐ 🌟 ✨ 💫 🌠 ☄️ 🦋 🐝 🎈 🪁 🛸 🚀 🛰️ 🌈 ❄️ 🐦 🕊️ 🦉 🚁 ✈️ 👻 🌧️ 🐳 🐬 🐟 🐠 🐙 🐡'.split(' '));
 function spotIn(sc, R) {
-  const s = { s: sc.id, x: 0, y: 0, size: 0.075 * sc.w, flip: R() < 0.5, behind: null }, lines = surfacesIn(sc);
+  const s = { s: sc.id, x: 0, y: 0, size: 0.075 * sc.w, flip: R() < 0.5, behind: null }, lines = surfacesIn(sc), ins = insidesIn(sc);
+  const shelves = lines.filter(f => !(f.room && isoDoor(f.owner))); // (not inside the fridge: there's no room for her)
   // standing on a shelf or a table, or on the ground in the lower half of the page
   const grounded = (x, feet) => feet > sc.h * 0.05 || lines.some(f => Math.abs(lineY(f, x) - feet) < 0.03 * sc.w && x >= f.x0 - 0.02 && x <= f.x1 + 0.02);
   const covers = sc.items.filter(it => {
-    if ((it.t !== 'e' && it.t !== 'a') || it.tilt || it.wall || Math.abs(wrapAngle(it.rot)) > 0.3 || (it.t === 'a' && (!ART[it.a] || ART[it.a].floor)) || (it.t === 'e' && FLYING.has(it.e))) return false;
+    if ((it.t !== 'e' && it.t !== 'a') || it.tilt || it.wall || (ins && ins.of.has(it.id)) || Math.abs(wrapAngle(it.rot)) > 0.3 || (it.t === 'a' && (!ART[it.a] || ART[it.a].floor)) || (it.t === 'e' && FLYING.has(it.e))) return false;
     const e = itemExtent(it), k = itemScale(it);
     return (e[3] - e[1]) * k > 0.07 * sc.w && Math.abs(it.x) < sc.w * 0.42 && Math.abs(it.y) < sc.h * 0.42 && grounded(it.x, it.y + stickerBottom(it) * k);
   });
@@ -6593,8 +7338,8 @@ function spotIn(sc, R) {
     s.y = it.y + stickerBottom(it) * k - ART.pip.ar / 2 * s.size; // standing where it stands
     s.flip = side < 0; // looking out, away from it
     s.behind = it.id;
-  } else if (lines.length) { // on a shelf, all on her own
-    const f = lines[Math.floor(R() * lines.length)];
+  } else if (shelves.length) { // on a shelf, all on her own
+    const f = shelves[Math.floor(R() * shelves.length)];
     s.x = f.x0 + (f.x1 - f.x0) * (0.2 + R() * 0.6); s.y = lineY(f, s.x) - ART.pip.ar / 2 * s.size;
   } else { s.x = (R() - 0.5) * sc.w * 0.6; s.y = sc.h * (0.12 + R() * 0.22); }
   s.x = clamp(s.x, -sc.w * 0.44, sc.w * 0.44); s.y = clamp(s.y, -sc.h * 0.44, sc.h * 0.44);
@@ -7337,7 +8082,7 @@ function giftTile(g, S) {
 
 /* ----- putting a present in the book ----- */
 // Check a present's scenes over before they go in: only sensible values, known kinds of thing, and what its root leads to.
-const ITEM_KEYS = ['t', 'x', 'y', 'size', 'rot', 'flip', 'tilt', 'spin', 'e', 'a', 'c', 'p', 'f', 's', 'link', 'open', 'lit', 'fx', 'wrapped', 'note', 'from', 'n', 'lock', 'wall'];
+const ITEM_KEYS = ['t', 'x', 'y', 'size', 'rot', 'flip', 'tilt', 'spin', 'e', 'a', 'c', 'p', 'f', 's', 'link', 'open', 'lit', 'fx', 'wrapped', 'note', 'from', 'n', 'lock', 'wall', 'locked'];
 function parseBundle(b, photos) {
   if (!b || typeof b !== 'object' || typeof b.root !== 'string' || !b.scenes || typeof b.scenes !== 'object') return null;
   const ids = Object.keys(b.scenes), fin = v => typeof v === 'number' && Number.isFinite(v);
@@ -7815,6 +8560,73 @@ function inviteToPlay() {
   else copy();
 }
 
+/* ----- suggestions and comments (Menu): written here, sent in a message ----- */
+// There's nowhere on the web for them to go (the copy outside Claude has no server), so they go the way presents by
+// message do: the share sheet (Messages, WhatsApp, email...), or copied to paste into one. Each carries where it was
+// written (the page, the phone, which build), and a problem can take a picture of the screen along.
+SHEETS.push('ideaSheet');
+const IDEA_KINDS = {
+  idea: { head: '💡 An idea for Sticker Worlds:', ask: 'What would you love to have?', eg: 'I wish Sticker Worlds had…', pic: false },
+  bug: { head: '🛠️ Something isn’t working in Sticker Worlds:', ask: 'What went wrong? What were you doing?', eg: 'When I tapped the…', pic: true },
+  note: { head: '💬 A comment about Sticker Worlds:', ask: 'What would you like to say?', eg: 'I love the…', pic: false },
+};
+let ideaKind = 'idea';
+// What's being written is kept on this device until it's sent, in case the sheet is closed half way.
+function ideaDraft(d) {
+  try {
+    if (d === undefined) return JSON.parse(localStorage.getItem('sw-idea') || 'null');
+    if (d) localStorage.setItem('sw-idea', JSON.stringify(d)); else localStorage.removeItem('sw-idea');
+  } catch (e) { /* storage blocked */ }
+  return null;
+}
+function setIdeaKind(k) {
+  ideaKind = IDEA_KINDS[k] ? k : 'idea';
+  const K = IDEA_KINDS[ideaKind];
+  for (const b of $('ideaKinds').children) b.setAttribute('aria-checked', b.dataset.kind === ideaKind ? 'true' : 'false');
+  $('ideaAsk').textContent = K.ask; $('ideaText').placeholder = K.eg;
+  $('ideaPic').checked = K.pic; // a picture helps most when something's wrong
+}
+function openIdeas() {
+  openSheet('ideaSheet');
+  const d = ideaDraft() || {};
+  setIdeaKind(d.kind);
+  $('ideaText').value = typeof d.text === 'string' ? d.text : '';
+  $('ideaGo').disabled = !$('ideaText').value.trim();
+  let pics = false; // can a picture go along? (only where the share sheet takes files)
+  try { pics = !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] })); } catch (e) { pics = false; }
+  $('ideaPicRow').hidden = !pics;
+}
+function deviceName() {
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'iPad';
+  if (/iPhone|iPod/.test(ua)) return 'iPhone';
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Android phone' : 'Android tablet';
+  return 'computer';
+}
+// Where it was written: "page 3, Little house › Bedroom (iPhone, Home Screen app, build 1a2b3c4)".
+function ideaWhere() {
+  const at = path.map(p => (scene(p.s) || {}).name || 'Untitled').join(' › ');
+  const app = !STANDALONE ? 'on Claude' : homeScreen() ? 'Home Screen app' : 'in the browser';
+  return (bookPage ? 'page ' + bookPage + ', ' : '') + at + ' (' + deviceName() + ', ' + app + (BUILD ? ', build ' + BUILD : '') + ')';
+}
+function sendIdea() {
+  const note = $('ideaText').value.trim().slice(0, 2000);
+  if (!note) return;
+  const text = IDEA_KINDS[ideaKind].head + '\n' + note + '\n\n— Written on ' + ideaWhere();
+  let data = { text };
+  if ($('ideaPic').checked && !$('ideaPicRow').hidden) { // drawn now, without waiting: the share sheet only opens straight from the tap
+    exporting = true; render(); exporting = false;
+    data = { text, files: [pictureFile()] };
+  }
+  const sent = () => { ideaDraft(null); closeSheets(); sfx('sent'); toast('Thank you! Your message is on its way.', 3600); };
+  const copy = () => copyText(text).then(ok => {
+    if (ok) { ideaDraft(null); closeSheets(); toast('Copied! Paste it into a message to send it.', 4200); }
+    else { $('ideaText').focus(); $('ideaText').select(); toast('Copy what you wrote and paste it into a message', 4200); }
+  });
+  if (navigator.share && (!data.files || navigator.canShare(data))) navigator.share(data).then(sent, err => { if (!err || err.name !== 'AbortError') copy(); });
+  else copy();
+}
+
 /* ----- backups ----- */
 function backupName() {
   const d = new Date(), p = n => String(n).padStart(2, '0');
@@ -7878,6 +8690,11 @@ async function loadBackup(file) {
 
 function wireShare() {
   $('mShare').onclick = openShare;
+  $('mIdeas').onclick = openIdeas;
+  for (const b of $('ideaKinds').children) b.onclick = () => { setIdeaKind(b.dataset.kind); ideaDraft({ kind: ideaKind, text: $('ideaText').value }); };
+  $('ideaText').addEventListener('input', () => { $('ideaGo').disabled = !$('ideaText').value.trim(); ideaDraft({ kind: ideaKind, text: $('ideaText').value }); });
+  $('ideaNo').onclick = closeSheets;
+  $('ideaGo').onclick = sendIdea;
   $('shPage').onclick = () => openSendSheet({ kind: 'page', s: doc.pages[bookPage] });
   $('shBox').onclick = () => { closeSheets(); addSticker({ t: 'p', f: 'gift' }); };
   $('shPaste').onclick = pastePresent;
