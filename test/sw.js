@@ -1,12 +1,13 @@
-/* Sticker Worlds outside Claude: keeps the page, its icons and its fonts, so it opens without a connection.
+/* Sticker Worlds outside Claude: keeps the page, its icons, its fonts and its music, so it opens without a connection.
    build.sh stamps which copy this is into KIND ('sticker-worlds', or 'sticker-worlds-test' for the test copy in test/)
    and the build into CACHE, so each new build replaces the old copy of the same kind, and leaves the other alone. */
-const KIND = 'sticker-worlds-test', CACHE = KIND + '-1712749393';
-// This copy's own files sit in the folder beside sw.js. The test copy lives in a folder below the real one's, so the
-// real one's service worker sees its requests too (before the test copy's own takes over): it leaves those be.
+const KIND = 'sticker-worlds-test', CACHE = KIND + '-2602176588';
+// This copy's own files sit in the folder beside sw.js, and its songs in music/. The test copy lives in a folder below
+// the real one's, so the real one's service worker sees its requests too (before the test copy's own takes over): it
+// leaves those be.
 const ROOT = new URL('./', location.href).pathname;
-const ours = url => url.pathname.startsWith(ROOT) && !url.pathname.slice(ROOT.length).includes('/');
-const SHELL = ['./', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
+const ours = url => { const rest = url.pathname.slice(ROOT.length); return url.pathname.startsWith(ROOT) && !rest.replace(/^music\//, '').includes('/'); };
+const SHELL = ['./', 'manifest.webmanifest', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'music/woodblock-whispers.mp3'];
 const FONTS = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap';
 
 self.addEventListener('install', e => e.waitUntil((async () => {

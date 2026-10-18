@@ -120,7 +120,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .selbar button:active { background: var(--chip); }
 .selbar .primary { background: var(--chip-active); color: var(--ink); }
 .selbar .danger, .selbar .danger svg.i { color: var(--berry); }
-/* More, at the end of the toolbar: Copy, and the Day / Night switch (which is in the menu too) */
+/* More, at the end of the toolbar: Copy, and the Music and Day / Night switches (which are in the menu too) */
 .selmore {
   position: fixed; z-index: 7; display: grid; gap: 6px; min-width: 196px; padding: 6px;
   background: var(--paper); border-radius: 18px; box-shadow: var(--shadow); animation: sheet-in 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.1);
@@ -253,8 +253,9 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 
 .menu-list { display: grid; gap: 8px; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; } /* scrolls on a short phone */
 #menuSheet { max-height: min(78vh, 660px); } /* all nine on a 375x812 phone */
-.menu-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } /* Sounds, and Day / Night */
+.menu-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } /* Sounds and Music, and Day / Night under them */
 .menu-pair button { min-width: 0; }
+.menu-pair .daynight { grid-column: 1 / -1; }
 .menu-list button {
   display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: var(--chip);
   border-radius: 14px; padding: 11px 16px; text-align: left; font-weight: 800; font-size: 15px;
@@ -293,6 +294,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .gift-card .confirm-row { justify-content: center; }
 .gift-card .confirm-row .primary { background: var(--sun); color: var(--sun-ink); }
 #mSound[aria-checked="true"] .snd-off, #mSound[aria-checked="false"] .snd-on { display: none; }
+.music-switch[aria-checked="true"] .mus-off { display: none; }
 
 /* presents: the waiting-present button, the Send sheet, the card for one arriving, and the For you tab */
 .mail-btn span { font-family: var(--font-emoji); font-size: 24px; line-height: 1; display: block; animation: mail-bob 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
@@ -384,6 +386,9 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   <button type="button" data-act="dup">
     <svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/></svg>Copy
   </button>
+  <button type="button" class="music-switch" role="switch" aria-checked="true">
+    <svg class="i" viewBox="0 0 24 24"><path d="M9 17.5V5.8l11-2.3v12"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><path class="mus-off" d="m3.5 3.5 17 17"/></svg><span>Music on</span>
+  </button>
   <div class="daynight" role="radiogroup" aria-label="Day or night">
     <button type="button" role="radio" data-night="false" aria-checked="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>Day</button>
     <button type="button" role="radio" data-night="true" aria-checked="false"><svg class="i" viewBox="0 0 24 24"><path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/><path d="M17 3.5v3M15.5 5h3"/></svg>Night</button>
@@ -439,6 +444,9 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
     <div class="menu-pair">
       <button type="button" id="mSound" role="switch" aria-checked="true">
         <svg class="i" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="snd-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="snd-off" d="m16 9.5 5 5M21 9.5l-5 5"/></svg><span id="mSoundLabel">Sounds on</span>
+      </button>
+      <button type="button" class="music-switch" role="switch" aria-checked="true">
+        <svg class="i" viewBox="0 0 24 24"><path d="M9 17.5V5.8l11-2.3v12"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="15.5" r="2.5"/><path class="mus-off" d="m3.5 3.5 17 17"/></svg><span>Music on</span>
       </button>
       <div class="daynight" role="radiogroup" aria-label="Day or night">
         <button type="button" role="radio" data-night="false" aria-checked="true"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>Day</button>
@@ -605,7 +613,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 const STANDALONE = true;
 const TEST_COPY = true;
 const SITE_URL = 'https://daveyxjones.github.io/Sticker-World-Play/';
-const BUILD = '50489be';
+const BUILD = '231c8ac';
 // The test copy (site-test/, served from test/ below the real one) shares its web address's saved data with the real
 // copy on the same phone: so everything it keeps on the device goes under names of its own, and trying out a new build
 // can never touch the real book. build.sh puts this first in the test copy's page only.
@@ -4362,13 +4370,18 @@ function wireCutter() {
   addEventListener('resize', () => { if (openSheetId === 'cutSheet') fitCutter(); });
 }
 /* ---------- sound: little noises made on the spot with the Web Audio API, so there are no sound files ---------- */
-// Browsers only let a page make sound after a touch, so the audio starts (or wakes up) on the first one.
-let audio = null, master = null, noiseBuf = null, soundOn = true;
+// (except the music, at the end). Browsers only let a page make sound after a touch, so the audio starts (or wakes up)
+// on the first one. Sounds and Music have a switch each, and the audio wakes for either.
+let audio = null, master = null, noiseBuf = null, soundOn = true, musicOn = true, musicFresh = false;
 const lastSfx = new Map(); // sound name -> when it last played, so a burst of the same event plays once
-try { soundOn = localStorage.getItem('sw-sound') !== 'off'; } catch (e) { /* storage blocked */ }
+try {
+  soundOn = localStorage.getItem('sw-sound') !== 'off';
+  const m = localStorage.getItem('sw-music');
+  musicOn = m !== 'off'; musicFresh = m === null; // on until switched off, so everyone hears it the first time
+} catch (e) { /* storage blocked */ }
 
 function wakeAudio() {
-  if (!soundOn) return;
+  if (!soundOn && !musicOn) return;
   try {
     if (!audio) {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -4382,15 +4395,16 @@ function wakeAudio() {
       const d = noiseBuf.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     }
-    if (audio.state === 'suspended') audio.resume();
+    if (audio.state === 'suspended' || audio.state === 'interrupted') audio.resume(); // (interrupted: an iPhone call, say)
   } catch (e) { audio = null; }
+  if (musicOn) startMusic();
 }
 for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) document.addEventListener(ev, wakeAudio, true);
 
 function setSound(on) {
   soundOn = on;
   try { localStorage.setItem('sw-sound', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
-  if (on) { wakeAudio(); sfx('pop'); } else if (audio) audio.suspend();
+  if (on) { wakeAudio(); sfx('pop'); } else if (audio && !musicOn) audio.suspend();
 }
 
 // Play a sound by name (see SFX). `gap` ms must pass before the same one plays again.
@@ -4586,6 +4600,104 @@ const SFX = {
   /* Pip the mouse */
   found() { SFX.squeak(); seq([84, 88, 91, 96], 0.09, { at: 0.2, gain: 0.1, dur: 0.5 }); },
 };
+
+/* ---------- music: the book's own song, softly round and round ---------- */
+// "Woodblock Whispers", which David made for the book with Suno, is the one sound that's a file: music/ beside the page
+// (build.sh copies src/music/ there), kept by sw.js for offline use. It's fetched whole and decoded rather than played by
+// an <audio> element, so it loops without a gap, comes from the offline copy like any other file, and keeps quiet with
+// an iPhone's silent switch like the other sounds. It skips Sounds' compressor (taps would pump it), at a level the taps
+// still come through over. The switch is in the menu beside Sounds and in the toolbar's More (`sw-music`, on the device).
+const SONG = { file: 'music/woodblock-whispers.mp3', title: 'Woodblock Whispers' };
+const MUSIC_VOL = 0.15, MUSIC_IN = 2.5; // its level (about 10 dB under a tap's pat, pop or tock), and its fade-in in seconds
+let musicBytes = null, musicBuf = null, musicLoop = null, musicSrc = null, musicGain = null, musicLoading = false, musicTell = 0;
+
+function loadMusic() {
+  if (!musicBytes) musicBytes = fetch(SONG.file).then(r => { if (!r.ok) throw new Error('music ' + r.status); return r.arrayBuffer(); });
+  return musicBytes;
+}
+async function startMusic() {
+  if (!musicOn || !audio || musicSrc || musicLoading) return;
+  musicLoading = true;
+  try {
+    if (!musicBuf) {
+      const bytes = await loadMusic();
+      musicBytes = null; // decoding takes the bytes over
+      const buf = await new Promise((ok, no) => audio.decodeAudioData(bytes, ok, no));
+      musicLoop = loopOf(buf); musicBuf = buf;
+    }
+    if (!musicOn) musicBuf = null; // switched off while it loaded
+    else if (!musicSrc) playMusic();
+  } catch (e) { musicBytes = null; /* no song (offline before it was kept, say): quiet, and tried again on the next touch */ }
+  musicLoading = false;
+}
+// Where the song really starts and ends (the file has a little silence at each end, more in some browsers than others),
+// with a breath kept after its last note.
+function loopOf(buf) {
+  const ch = []; for (let i = 0; i < buf.numberOfChannels; i++) ch.push(buf.getChannelData(i));
+  const heard = i => ch.some(d => Math.abs(d[i]) > 0.001);
+  let a = 0, b = buf.length - 1;
+  while (a < b && !heard(a)) a++;
+  while (b > a && !heard(b)) b--;
+  return [a / buf.sampleRate, Math.min(buf.duration, b / buf.sampleRate + 0.25)];
+}
+function playMusic() {
+  if (!musicGain) { musicGain = audio.createGain(); musicGain.gain.value = 0; musicGain.connect(audio.destination); }
+  const src = audio.createBufferSource();
+  src.buffer = musicBuf; src.loop = true; [src.loopStart, src.loopEnd] = musicLoop;
+  src.connect(musicGain);
+  fadeMusic(MUSIC_VOL, MUSIC_IN, 0);
+  src.start(0, musicLoop[0]);
+  musicSrc = src;
+  if (musicFresh) { musicFresh = false; tellMusic(2500); }
+}
+function fadeMusic(to, secs, from) {
+  const g = musicGain.gain, t = audio.currentTime;
+  g.cancelScheduledValues(t);
+  g.setValueAtTime(from == null ? g.value : from, t);
+  g.linearRampToValueAtTime(to, t + secs);
+}
+function stopMusic() {
+  if (!musicSrc) return;
+  const src = musicSrc; musicSrc = null;
+  fadeMusic(0, 0.6);
+  try { src.stop(audio.currentTime + 0.65); } catch (e) { /* stopped already */ }
+}
+// The first time it plays on a device, say what it is and where it's switched off, once no other toast or the welcome
+// card is showing (Pip's "hiding" toast comes just after the welcome card).
+function tellMusic(wait) {
+  musicTell = setTimeout(() => {
+    if (!$('toast').hidden || !$('welcome').hidden) return tellMusic(1500);
+    try { localStorage.setItem('sw-music', 'on'); } catch (e) { /* storage blocked */ }
+    toast('🎵 Music: “' + SONG.title + '”. Switch it off in the menu.', 4200);
+  }, wait);
+}
+function setMusic(on) {
+  musicOn = on; musicFresh = false; clearTimeout(musicTell); // (they've found the switch: no need to say where it is)
+  try { localStorage.setItem('sw-music', on ? 'on' : 'off'); } catch (e) { /* storage blocked */ }
+  if (on) wakeAudio(); // which starts it
+  else {
+    stopMusic();
+    musicBuf = null; // the song takes about 28 MB once decoded: let it go
+    if (audio && !soundOn) setTimeout(() => { if (audio && !soundOn && !musicOn) audio.suspend(); }, 700);
+  }
+  syncMusicButtons();
+}
+function syncMusicButtons() {
+  for (const b of document.querySelectorAll('.music-switch')) {
+    b.setAttribute('aria-checked', String(musicOn));
+    b.querySelector('span').textContent = musicOn ? 'Music on' : 'Music off';
+  }
+}
+// Quiet while the book is out of sight (another app, the screen locked), and back with a fade when it returns: on an
+// iPhone it may wait for the next touch (wakeAudio).
+document.addEventListener('visibilitychange', () => {
+  if (!audio) return;
+  if (document.visibilityState === 'hidden') { audio.suspend(); return; }
+  if (!soundOn && !musicOn) return;
+  if (musicSrc) fadeMusic(MUSIC_VOL, 1.5, 0);
+  try { const p = audio.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* waits for a touch */ }
+});
+if (musicOn) setTimeout(() => loadMusic().catch(() => { musicBytes = null; }), 1500); // fetched ahead, so it starts on the first touch
 /* ---------- rendering and camera motion ---------- */
 const stage = document.getElementById('stage');
 let ctx = stage.getContext('2d'); // swapped briefly while pictures of other pages are drawn
@@ -6495,7 +6607,7 @@ function syncSelbar() {
   $('actSend').hidden = !(cur.t === 'p' && cur.f === 'gift');
   $('actTilt').dataset.flat = cur.tilt ? 'true' : 'false';
 }
-// The toolbar's More: a little card over its right-hand end (Copy, and the Day / Night switch).
+// The toolbar's More: a little card over its right-hand end (Copy, and the Music and Day / Night switches).
 function showMore(open) {
   const box = $('selMore');
   box.hidden = !open; $('actMore').setAttribute('aria-expanded', String(open));
@@ -6885,6 +6997,8 @@ function wireUI() {
   $('mPages').onclick = openPages;
   $('mSound').onclick = () => { setSound(!soundOn); syncSoundButton(); };
   syncSoundButton();
+  for (const b of document.querySelectorAll('.music-switch')) b.onclick = () => setMusic(!musicOn);
+  syncMusicButtons();
   for (const b of document.querySelectorAll('.daynight [data-night]')) b.onclick = () => { const on = b.dataset.night === 'true'; if (on !== nightOn) setNight(on); };
   syncNightButtons();
   $('btnPip').onclick = pipHint;
