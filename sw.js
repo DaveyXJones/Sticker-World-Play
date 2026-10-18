@@ -1,7 +1,7 @@
 /* Sticker Worlds outside Claude: keeps the page, its icons and its fonts, so it opens without a connection.
    build.sh stamps which copy this is into KIND ('sticker-worlds', or 'sticker-worlds-test' for the test copy in test/)
    and the build into CACHE, so each new build replaces the old copy of the same kind, and leaves the other alone. */
-const KIND = 'sticker-worlds', CACHE = KIND + '-1489408413';
+const KIND = 'sticker-worlds', CACHE = KIND + '-2768491365';
 // This copy's own files sit in the folder beside sw.js. The test copy lives in a folder below the real one's, so the
 // real one's service worker sees its requests too (before the test copy's own takes over): it leaves those be.
 const ROOT = new URL('./', location.href).pathname;
